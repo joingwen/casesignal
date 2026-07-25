@@ -4,6 +4,8 @@ import { ArrowRight } from 'lucide-react'
 import { AnnotatedRule, Eyebrow, Section, SectionHeading } from '@/components/marketing/section'
 import { NEUTRALITY_DISCLAIMER } from '@/lib/domain'
 import { env } from '@/lib/env'
+import { XIcon } from '@/components/brand/x-icon'
+import { X_HANDLE, X_URL } from '@/lib/social'
 
 export const metadata: Metadata = {
   title: 'About — CaseSignal',
@@ -185,6 +187,19 @@ export default function AboutPage() {
                 A public contact address has not been configured for this deployment. Please reach its operator directly.
               </p>
             )}
+            <p>
+              CaseSignal posts build notes and public-records work on X at{' '}
+              <a
+                href={X_URL}
+                rel="noreferrer noopener"
+                target="_blank"
+                className="inline-flex items-center gap-1.5 text-ink underline underline-offset-4"
+              >
+                <XIcon className="h-3.5 w-3.5" />
+                {X_HANDLE}
+              </a>
+              .
+            </p>
           </div>
           <AnnotatedRule label="From raw records to a defensible dossier" className="mt-10" />
         </div>

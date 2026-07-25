@@ -433,6 +433,16 @@ already do this.
 
 ---
 
+## Links
+
+- X / Twitter: [@KevinMoncla](https://x.com/KevinMoncla)
+
+The account is declared in `src/lib/social.ts` with `NEXT_PUBLIC_SOCIAL_X` as an
+optional override, so the link is always present rather than depending on
+environment configuration.
+
+---
+
 ## License and use
 
 All demonstration content shipped with CaseSignal is fictional. The Northstar

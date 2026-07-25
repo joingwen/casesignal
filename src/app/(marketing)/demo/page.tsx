@@ -6,6 +6,8 @@ import { CitationStage } from '@/components/marketing/citation-stage'
 import { AnnotatedRule, Eyebrow, Section, SectionHeading } from '@/components/marketing/section'
 import { CopilotPanel, DiscrepancyPanel, SpreadsheetPanel, TimelinePanel } from '@/components/marketing/panels'
 import { DEMO_BANNER, NEUTRALITY_DISCLAIMER } from '@/lib/domain'
+import { XIcon } from '@/components/brand/x-icon'
+import { X_HANDLE, X_URL } from '@/lib/social'
 
 export const metadata: Metadata = {
   title: 'Interactive demo — CaseSignal',
@@ -248,6 +250,15 @@ export default function DemoPage() {
               Start your own case
               <ArrowRight className="h-4 w-4 transition-transform duration-200 ease-editorial group-hover:translate-x-0.5" />
             </Link>
+            <a
+              href={X_URL}
+              rel="noreferrer noopener"
+              target="_blank"
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-control border border-line-strong px-7 text-[15px] font-medium text-ink transition-colors duration-200 ease-editorial hover:bg-surface sm:w-auto"
+            >
+              <XIcon className="h-4 w-4" />
+              Follow {X_HANDLE}
+            </a>
             <Link
               href="/product"
               className="inline-flex h-12 w-full items-center justify-center rounded-control border border-line-strong bg-canvas px-7 text-[15px] font-medium text-ink transition-colors duration-200 hover:bg-surface sm:w-auto"

@@ -7,6 +7,7 @@ import './globals.css'
 import { appUrl } from '@/lib/env'
 import { Toaster } from '@/components/ui'
 import { AppProviders } from '@/components/providers'
+import { X_HANDLE, X_URL } from '@/lib/social'
 
 const TITLE = 'CaseSignal — Turn public records into source-backed case files.'
 const DESCRIPTION =
@@ -28,7 +29,8 @@ export const metadata: Metadata = {
     'investigation',
     'case file',
   ],
-  authors: [{ name: 'CaseSignal' }],
+  authors: [{ name: 'CaseSignal', url: X_URL }],
+  creator: X_HANDLE,
   icons: {
     icon: '/icon.svg',
     shortcut: '/icon.svg',
@@ -47,6 +49,8 @@ export const metadata: Metadata = {
     title: TITLE,
     description: DESCRIPTION,
     images: ['/og-image.svg'],
+    site: X_HANDLE,
+    creator: X_HANDLE,
   },
   robots: { index: true, follow: true },
 }

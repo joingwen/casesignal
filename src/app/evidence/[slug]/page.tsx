@@ -22,6 +22,8 @@ import { ClaimStatusChip, PrecisionChip } from '@/components/ui'
 import { Logomark } from '@/components/brand/logo'
 import { hasShareAccess, isShareSlug } from './share-session'
 import { PasswordGate } from './password-gate'
+import { XIcon } from '@/components/brand/x-icon'
+import { X_HANDLE, X_URL } from '@/lib/social'
 
 /**
  * The public evidence room.
@@ -512,13 +514,24 @@ export default async function EvidenceRoomPage({ params }: { params: Promise<{ s
             <p className="font-mono text-[11px] tabular text-ink-muted">
               Last updated {formatDate(lastUpdated)}
             </p>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-1.5 text-[11.5px] text-ink-muted transition-colors hover:text-ink"
-            >
-              <Logomark className="h-3.5 w-3.5" />
-              Published with CaseSignal
-            </Link>
+            <div className="flex items-center gap-4">
+              <a
+                href={X_URL}
+                rel="noreferrer noopener"
+                target="_blank"
+                className="inline-flex items-center gap-1.5 text-[11.5px] text-ink-muted transition-colors hover:text-ink"
+              >
+                <XIcon className="h-3.5 w-3.5" />
+                {X_HANDLE}
+              </a>
+              <Link
+                href="/"
+                className="inline-flex items-center gap-1.5 text-[11.5px] text-ink-muted transition-colors hover:text-ink"
+              >
+                <Logomark className="h-3.5 w-3.5" />
+                Published with CaseSignal
+              </Link>
+            </div>
           </div>
         </footer>
       </article>

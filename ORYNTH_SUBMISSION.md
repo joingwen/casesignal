@@ -26,6 +26,8 @@ source passage behind it.
 Kevin Moncla is an election investigator and consultant focused on public records,
 evidence organization, and accountable research workflows.
 
+X / Twitter: <https://x.com/KevinMoncla>
+
 ## Suggested demo sequence
 
 1. **Create case** — pick the Public Procurement Review template; the objective is
@@ -84,6 +86,10 @@ data, each sized for **1200 × 675** and **1200 × 1200**:
 4. Timeline and discrepancy matrix
 
 See the "Capturing showcase frames" section of `README.md` for the capture steps.
+
+## Links
+
+- X / Twitter: <https://x.com/KevinMoncla>
 
 ## Assets
 

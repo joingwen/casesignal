@@ -4,6 +4,8 @@ import { ArrowUpRight } from 'lucide-react'
 import { AnnotatedRule, Eyebrow, Section, SectionHeading } from '@/components/marketing/section'
 import { NEUTRALITY_DISCLAIMER } from '@/lib/domain'
 import { capabilities, env } from '@/lib/env'
+import { XIcon } from '@/components/brand/x-icon'
+import { X_HANDLE, X_URL } from '@/lib/social'
 
 export const metadata: Metadata = {
   title: 'Security & privacy — CaseSignal',
@@ -395,6 +397,20 @@ export default function SecurityPage() {
                   </p>
                 </>
               )}
+
+              <p className="mt-5 border-t border-line pt-4 text-[13px] leading-relaxed text-ink-secondary">
+                For anything not security-sensitive, CaseSignal is on X at{' '}
+                <a
+                  href={X_URL}
+                  rel="noreferrer noopener"
+                  target="_blank"
+                  className="inline-flex items-center gap-1.5 text-ink underline underline-offset-4"
+                >
+                  <XIcon className="h-3.5 w-3.5" />
+                  {X_HANDLE}
+                </a>
+                . Please do not post vulnerability details publicly.
+              </p>
             </div>
 
             <div className="mt-8 grid gap-8 border-t border-line pt-8 sm:grid-cols-2">

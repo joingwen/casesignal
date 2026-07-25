@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ArrowUpRight, Menu, X } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
+import { XIcon } from '@/components/brand/x-icon'
+import { X_HANDLE, X_URL } from '@/lib/social'
 import { ClerkAuthControls, ClerkAuthControlsMobile } from './auth-controls'
 import { cn } from '@/lib/utils'
 
@@ -79,25 +81,42 @@ export function MarketingHeader({ clerkEnabled = false }: { clerkEnabled?: boole
           })}
         </nav>
 
-        {clerkEnabled ? (
-          <ClerkAuthControls className="hidden md:flex" />
-        ) : (
-          <div className="hidden items-center gap-2 md:flex">
-            <Link
-              href="/sign-in"
-              className="rounded-control px-3 py-1.5 text-[13.5px] text-ink-secondary transition-colors duration-200 hover:text-ink"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/sign-up"
-              className="group inline-flex items-center gap-1.5 rounded-control bg-ink px-3.5 py-2 text-[13.5px] font-medium text-white transition-colors duration-200 ease-editorial hover:bg-ink/90"
-            >
-              Start a Case
-              <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-200 ease-editorial group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </Link>
-          </div>
-        )}
+        {/*
+          The X link and the auth controls share one flex group so the header
+          keeps its three-part balance — logo, centred nav, trailing actions —
+          rather than becoming four evenly-spaced items.
+        */}
+        <div className="hidden items-center gap-1 md:flex">
+          <a
+            href={X_URL}
+            rel="noreferrer noopener"
+            target="_blank"
+            aria-label={`CaseSignal on X (${X_HANDLE})`}
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-control text-ink-muted transition-colors duration-200 ease-editorial hover:bg-surface hover:text-ink"
+          >
+            <XIcon className="h-[15px] w-[15px]" />
+          </a>
+
+          {clerkEnabled ? (
+            <ClerkAuthControls />
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link
+                href="/sign-in"
+                className="rounded-control px-3 py-1.5 text-[13.5px] text-ink-secondary transition-colors duration-200 hover:text-ink"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/sign-up"
+                className="group inline-flex items-center gap-1.5 rounded-control bg-ink px-3.5 py-2 text-[13.5px] font-medium text-white transition-colors duration-200 ease-editorial hover:bg-ink/90"
+              >
+                Start a Case
+                <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-200 ease-editorial group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </Link>
+            </div>
+          )}
+        </div>
 
         <button
           type="button"
@@ -126,6 +145,17 @@ export function MarketingHeader({ clerkEnabled = false }: { clerkEnabled?: boole
               </Link>
             ))}
           </nav>
+          <a
+            href={X_URL}
+            rel="noreferrer noopener"
+            target="_blank"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2 border-b border-line py-3.5 text-[17px] text-ink"
+          >
+            <XIcon className="h-4 w-4" />
+            {X_HANDLE}
+          </a>
+
           {clerkEnabled ? (
             <ClerkAuthControlsMobile onNavigate={() => setOpen(false)} />
           ) : (

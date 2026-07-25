@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { Logo } from '@/components/brand/logo'
+import { XIcon } from '@/components/brand/x-icon'
 import { env } from '@/lib/env'
+import { X_HANDLE, X_URL } from '@/lib/social'
 import { NEUTRALITY_DISCLAIMER } from '@/lib/domain'
 
 const COLUMNS: { heading: string; links: { href: string; label: string; external?: boolean }[] }[] = [
@@ -36,13 +38,13 @@ const COLUMNS: { heading: string; links: { href: string; label: string; external
     links: [
       { href: '/about', label: 'About' },
       { href: '/security#reporting', label: 'Report an issue' },
+      { href: X_URL, label: `Follow ${X_HANDLE}`, external: true },
     ],
   },
 ]
 
 export function MarketingFooter() {
   const contactEmail = env.NEXT_PUBLIC_CONTACT_EMAIL
-  const social = env.NEXT_PUBLIC_SOCIAL_X
 
   return (
     <footer className="border-t border-line bg-canvas">
@@ -63,16 +65,15 @@ export function MarketingFooter() {
                   Contact address not configured
                 </span>
               )}
-              {social ? (
-                <a
-                  href={social}
-                  rel="noreferrer noopener"
-                  target="_blank"
-                  className="text-ink-secondary underline-offset-4 hover:text-ink hover:underline"
-                >
-                  X / Twitter
-                </a>
-              ) : null}
+              <a
+                href={X_URL}
+                rel="noreferrer noopener"
+                target="_blank"
+                className="inline-flex items-center gap-1.5 text-ink-secondary underline-offset-4 transition-colors duration-200 hover:text-ink hover:underline"
+              >
+                <XIcon className="h-3.5 w-3.5" />
+                {X_HANDLE}
+              </a>
             </div>
           </div>
 
@@ -85,12 +86,24 @@ export function MarketingFooter() {
                 <ul className="space-y-2.5">
                   {column.links.map((link) => (
                     <li key={link.href + link.label}>
-                      <Link
-                        href={link.href}
-                        className="text-[13.5px] text-ink-secondary underline-offset-4 transition-colors duration-200 hover:text-ink hover:underline"
-                      >
-                        {link.label}
-                      </Link>
+                      {link.external ? (
+                        <a
+                          href={link.href}
+                          rel="noreferrer noopener"
+                          target="_blank"
+                          className="inline-flex items-center gap-1.5 text-[13.5px] text-ink-secondary underline-offset-4 transition-colors duration-200 hover:text-ink hover:underline"
+                        >
+                          <XIcon className="h-3 w-3" />
+                          {link.label}
+                        </a>
+                      ) : (
+                        <Link
+                          href={link.href}
+                          className="text-[13.5px] text-ink-secondary underline-offset-4 transition-colors duration-200 hover:text-ink hover:underline"
+                        >
+                          {link.label}
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>
