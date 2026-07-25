@@ -46,10 +46,37 @@ async function createHostedHandle(url: string): Promise<Handle> {
 }
 
 async function createEmbeddedHandle(): Promise<Handle> {
+  /*
+   * The embedded database writes to local disk. On a serverless host that disk
+   * is read-only outside /tmp and is discarded between invocations, so falling
+   * back to it in production means either an immediate filesystem error or —
+   * worse — silent data loss on the next cold start. Refuse it, and name the
+   * variable that fixes it.
+   *
+   * Setting PGLITE_DATA_DIR explicitly is a deliberate opt-in, used by the
+   * end-to-end suite which runs a production build against a scratch directory.
+   */
+  if (env.NODE_ENV === 'production' && !env.PGLITE_DATA_DIR) {
+    const { ConfigurationError } = await import('@/server/auth/errors')
+    throw new ConfigurationError({
+      variable: 'DATABASE_URL',
+      message:
+        'This deployment has no database configured. Set DATABASE_URL (and DIRECT_URL) to a hosted Postgres connection string — CaseSignal will not fall back to its embedded database in production, because that data would be lost on the next cold start.',
+    })
+  }
+
   const { PGlite } = await import('@electric-sql/pglite')
   const { drizzle } = await import('drizzle-orm/pglite')
   const dataDir = env.PGLITE_DATA_DIR ?? path.join(process.cwd(), '.casesignal', 'pgdata')
-  fs.mkdirSync(path.dirname(dataDir), { recursive: true })
+  try {
+    fs.mkdirSync(path.dirname(dataDir), { recursive: true })
+  } catch (error) {
+    const { ConfigurationError } = await import('@/server/auth/errors')
+    throw new ConfigurationError({
+      variable: 'DATABASE_URL',
+      message: `The embedded database could not be created at ${dataDir} (${(error as Error).message}). Set DATABASE_URL to a hosted Postgres connection string, or point PGLITE_DATA_DIR at a writable location.`,
+    })
+  }
   const client = new PGlite(dataDir)
   await client.waitReady
   const db = drizzle(client, { schema }) as unknown as Database

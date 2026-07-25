@@ -11,3 +11,6 @@ playwright-report
 *.tsbuildinfo
 next-env.d.ts
 .DS_Store
+
+# Generated deployment env (contains secrets)
+vercel-production.env

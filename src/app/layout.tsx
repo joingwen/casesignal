@@ -53,6 +53,10 @@ export const metadata: Metadata = {
     creator: X_HANDLE,
   },
   robots: { index: true, follow: true },
+  other: {
+    // Orynth site-ownership verification.
+    'ory-verify': 'orynth-6145dd2ce28b4f65a5f5cece0b746388',
+  },
 }
 
 export const viewport: Viewport = {

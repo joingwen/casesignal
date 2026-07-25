@@ -64,6 +64,23 @@ export class PlanLimitError extends AppError {
   }
 }
 
+/**
+ * A deployment is missing configuration it cannot run without.
+ *
+ * Distinct from a runtime fault: nothing is wrong with the request, and
+ * retrying will not help until an environment variable is set. Surfaced to the
+ * operator with the variable named rather than as a generic failure.
+ */
+export class ConfigurationError extends AppError {
+  readonly variable: string
+
+  constructor(input: { variable: string; message: string }) {
+    super(input.message, { status: 503, code: 'not_configured' })
+    this.name = 'ConfigurationError'
+    this.variable = input.variable
+  }
+}
+
 export class AnalysisError extends AppError {
   constructor(message: string) {
     super(message, { status: 502, code: 'analysis_failed' })

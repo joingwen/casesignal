@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 
 import { capabilities } from '@/lib/env'
+import { ConfigurationError } from '@/server/auth/errors'
+import { DeploymentUnconfigured } from '@/components/app/deployment-unconfigured'
 import { getSession } from '@/server/auth/session'
 import { listCases, findDemoCase } from '@/server/queries/cases'
 import { listRecentCases } from '@/server/actions/cases'
@@ -8,7 +10,20 @@ import { getPlanState, getUsageSnapshot } from '@/server/billing/limits'
 import { AppShell } from '@/components/app/app-shell'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const session = await getSession()
+  /*
+   * A missing database is a deployment fault, not a request fault: the generic
+   * error boundary would invite a retry that can never succeed. Catch it here
+   * and say what is missing instead.
+   */
+  let session: Awaited<ReturnType<typeof getSession>>
+  try {
+    session = await getSession()
+  } catch (error) {
+    if (error instanceof ConfigurationError) {
+      return <DeploymentUnconfigured variable={error.variable} message={error.message} />
+    }
+    throw error
+  }
   if (!session) redirect('/sign-in')
 
   const [recent, allCases, usage, planState, demoCaseId] = await Promise.all([
