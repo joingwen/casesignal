@@ -238,22 +238,44 @@ export async function processSource(input: ProcessInput): Promise<{ status: Proc
       chunks: serviceChunks,
     })
 
-    await Promise.all([
-      persistEntities(source.caseId, serviceChunks),
-      persistClaims(source.caseId, objective, serviceChunks),
-      persistTimeline(source.caseId, source.id, serviceChunks),
-    ])
+    /*
+     * The three extractors run independently. A model that fumbles one schema
+     * must not discard the work the others completed: previously a single
+     * malformed field marked the whole source `failed` and threw away its
+     * claims, entities and index. Partial failure now degrades to
+     * `needs_review` with the specific step named.
+     */
+    const extractors: [string, Promise<unknown>][] = [
+      ['entities', persistEntities(source.caseId, serviceChunks)],
+      ['claims', persistClaims(source.caseId, objective, serviceChunks)],
+      ['timeline', persistTimeline(source.caseId, source.id, serviceChunks)],
+    ]
+    const settled = await Promise.allSettled(extractors.map(([, promise]) => promise))
+    const failedSteps = settled
+      .map((result, index) => (result.status === 'rejected' ? extractors[index]![0] : null))
+      .filter((name): name is string => name !== null)
 
-    const finalStatus: ProcessingStatus = parsed.confidence < 0.4 ? 'needs_review' : 'complete'
+    for (const [index, result] of settled.entries()) {
+      if (result.status === 'rejected') {
+        console.warn(`[casesignal] ${extractors[index]![0]} extraction failed for source ${source.id}`, result.reason)
+      }
+    }
+
+    if (failedSteps.length > 0) warnings.push(`Some analysis steps did not complete: ${failedSteps.join(', ')}.`)
+
+    const finalStatus: ProcessingStatus =
+      failedSteps.length > 0 || parsed.confidence < 0.4 ? 'needs_review' : 'complete'
 
     await db
       .update(sources)
       .set({
         status: finalStatus,
         statusDetail:
-          finalStatus === 'needs_review'
-            ? 'Extracted with low confidence — read the original before relying on excerpts from this record.'
-            : PROCESSING_STATUS_META.complete.description,
+          failedSteps.length > 0
+            ? `Indexed and citable, but ${failedSteps.join(' and ')} extraction did not complete. Retry to run the missing steps.`
+            : finalStatus === 'needs_review'
+              ? 'Extracted with low confidence — read the original before relying on excerpts from this record.'
+              : PROCESSING_STATUS_META.complete.description,
         summary: summary.summary,
         keyPoints: summary.keyPoints,
         pageCount: parsed.pageCount,

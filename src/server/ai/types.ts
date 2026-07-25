@@ -20,8 +20,20 @@ import {
  * malformed model response can never reach the database.
  */
 
-const confidence = z.number().min(0).max(1)
+const confidence = z.number().min(0).max(1).catch(0.5)
 const chunkRef = z.string().min(1)
+
+/**
+ * Enum with a conservative fallback.
+ *
+ * Models occasionally return a near-miss label ("estimate" for "estimated").
+ * Discarding the whole extraction over a vocabulary slip loses good data, so an
+ * unrecognised value falls back to the least-assertive option instead. Anything
+ * correctness-critical — chunk ids, dates — stays strict and still rejects.
+ */
+function tolerantEnum<T extends readonly [string, ...string[]]>(values: T, fallback: T[number]) {
+  return z.enum(values).catch(fallback as never)
+}
 
 export const summarySchema = z.object({
   summary: z.string().min(1).max(1200),
@@ -36,7 +48,7 @@ export const entitySchema = z.object({
     .array(
       z.object({
         name: z.string().min(2).max(120),
-        type: z.enum(ENTITY_TYPES),
+        type: tolerantEnum(ENTITY_TYPES, 'other'),
         role: z.string().max(160).default(''),
         aliases: z.array(z.string().max(120)).max(6).default([]),
         description: z.string().max(400).default(''),
@@ -52,14 +64,14 @@ export const claimSchema = z.object({
     .array(
       z.object({
         statement: z.string().min(10).max(400),
-        category: z.enum(CLAIM_CATEGORIES),
-        materiality: z.enum(MATERIALITY_LEVELS),
+        category: tolerantEnum(CLAIM_CATEGORIES, 'other'),
+        materiality: tolerantEnum(MATERIALITY_LEVELS, 'medium'),
         confidence,
         evidence: z
           .array(
             z.object({
               chunkId: chunkRef,
-              role: z.enum(EVIDENCE_ROLES),
+              role: tolerantEnum(EVIDENCE_ROLES, 'context'),
               excerpt: z.string().max(600).default(''),
             }),
           )
@@ -81,10 +93,10 @@ export const timelineSchema = z.object({
           .nullable()
           .default(null),
         timeOfDay: z.string().max(20).nullable().default(null),
-        precision: z.enum(DATE_PRECISIONS),
+        precision: tolerantEnum(DATE_PRECISIONS, 'estimated'),
         title: z.string().min(4).max(200),
         description: z.string().max(600).default(''),
-        category: z.enum(EVENT_CATEGORIES),
+        category: tolerantEnum(EVENT_CATEGORIES, 'other'),
         confidence,
         chunkIds: z.array(chunkRef).min(1),
       }),
@@ -99,7 +111,7 @@ export const relationshipSchema = z.object({
       z.object({
         from: z.string().min(1).max(120),
         to: z.string().min(1).max(120),
-        type: z.enum(RELATIONSHIP_TYPES),
+        type: tolerantEnum(RELATIONSHIP_TYPES, 'related_to'),
         description: z.string().max(240).default(''),
         confidence,
         chunkIds: z.array(chunkRef).default([]),
@@ -115,9 +127,9 @@ export const discrepancySchema = z.object({
       z.object({
         title: z.string().min(6).max(160),
         description: z.string().min(10).max(700),
-        type: z.enum(DISCREPANCY_TYPES),
+        type: tolerantEnum(DISCREPANCY_TYPES, 'status'),
         subject: z.string().max(160).default(''),
-        materiality: z.enum(MATERIALITY_LEVELS),
+        materiality: tolerantEnum(MATERIALITY_LEVELS, 'medium'),
         confidence,
         sideA: z.object({ chunkId: chunkRef, statedValue: z.string().max(160).default(''), excerpt: z.string().max(600).default('') }),
         sideB: z.object({ chunkId: chunkRef, statedValue: z.string().max(160).default(''), excerpt: z.string().max(600).default('') }),

@@ -102,16 +102,20 @@ describe('structured AI output validation', () => {
     expect(result.success).toBe(false)
   })
 
-  it('rejects an out-of-range confidence', () => {
+  it('normalises an out-of-range confidence to neutral rather than failing', () => {
+    // 0.5 reads as "unknown", which is the honest value for a number the model
+    // produced outside the permitted range.
     const result = summarySchema.safeParse({ summary: 'x', keyPoints: [], documentType: '', extractionConfidence: 1.4 })
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
+    expect(result.success && result.data.extractionConfidence).toBe(0.5)
   })
 
-  it('rejects an unknown status vocabulary value', () => {
+  it('normalises an unknown vocabulary value to the neutral option', () => {
     const result = entitySchema.safeParse({
       entities: [{ name: 'Acme', type: 'spaceship', role: '', aliases: [], description: '', chunkIds: ['c1'] }],
     })
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
+    expect(result.success && result.data.entities[0]!.type).toBe('other')
   })
 
   it('rejects a timeline event with a malformed date', () => {
@@ -131,6 +135,60 @@ describe('structured AI output validation', () => {
       ],
     })
     expect(result.success).toBe(false)
+  })
+
+  it('recovers from a near-miss enum instead of discarding the whole extraction', () => {
+    // gpt-4.1 returned "estimate" for a precision of "estimated" against a live
+    // project, which previously rejected the payload and failed the ingestion.
+    const result = timelineSchema.safeParse({
+      events: [
+        {
+          occurredOn: '2024-09-10',
+          occurredEndOn: null,
+          timeOfDay: null,
+          precision: 'estimate',
+          title: 'Delivery committed',
+          description: '',
+          category: 'not-a-real-category',
+          confidence: 0.8,
+          chunkIds: ['c1'],
+        },
+      ],
+    })
+    expect(result.success).toBe(true)
+    expect(result.success && result.data.events[0]!.precision).toBe('estimated')
+    expect(result.success && result.data.events[0]!.category).toBe('other')
+  })
+
+  it('falls back to the least-assertive evidence role', () => {
+    // A wrong support/contradict label would misstate the evidence, so an
+    // unrecognised role becomes 'context', which asserts neither.
+    const result = claimSchema.safeParse({
+      claims: [
+        {
+          statement: 'The register records 240 units invoiced.',
+          category: 'quantity',
+          materiality: 'high',
+          confidence: 0.9,
+          evidence: [{ chunkId: 'c1', role: 'refutes', excerpt: '' }],
+        },
+      ],
+    })
+    expect(result.success).toBe(true)
+    expect(result.success && result.data.claims[0]!.evidence[0]!.role).toBe('context')
+  })
+
+  it('still rejects a bad chunk id or date, which are correctness-critical', () => {
+    expect(
+      timelineSchema.safeParse({
+        events: [{ occurredOn: 'last September', occurredEndOn: null, timeOfDay: null, precision: 'exact', title: 'x y', description: '', category: 'other', confidence: 0.5, chunkIds: ['c1'] }],
+      }).success,
+    ).toBe(false)
+    expect(
+      claimSchema.safeParse({
+        claims: [{ statement: 'A statement long enough.', category: 'other', materiality: 'low', confidence: 0.5, evidence: [{ chunkId: '', role: 'supporting', excerpt: '' }] }],
+      }).success,
+    ).toBe(false)
   })
 
   it('requires both sides of a discrepancy', () => {
