@@ -1,6 +1,7 @@
 import { MarketingFooter } from '@/components/marketing/footer'
 import { MarketingHeader } from '@/components/marketing/header'
 import { MarketingShell } from '@/components/marketing/shell'
+import { capabilities } from '@/lib/env'
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,7 +12,11 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       >
         Skip to content
       </a>
-      <MarketingHeader />
+      {/*
+        Evaluated on the server at build time, so marketing pages stay static:
+        it reflects whether Clerk is configured, not who is signed in.
+      */}
+      <MarketingHeader clerkEnabled={capabilities.clerkAuth} />
       <main id="main">{children}</main>
       <MarketingFooter />
     </MarketingShell>

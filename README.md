@@ -161,6 +161,27 @@ production.
 
 ### Clerk (authentication)
 
+The fastest route is the Clerk CLI, which links the project and writes the keys
+for you:
+
+```bash
+npm install -g clerk
+clerk auth login
+clerk init --app <your app_... id>
+clerk doctor
+```
+
+`clerk init` detects Next.js and skips anything already present. Because
+CaseSignal ships its own conditional Clerk wiring, decline or revert these two
+suggestions if it offers them:
+
+- **`ClerkProvider` in `src/app/layout.tsx`** — `AppProviders` already mounts it
+  conditionally. Adding it at the root double-wraps and breaks local mode.
+- **`src/app/sign-in` / `src/app/sign-up`** — the branded routes live under the
+  `(auth)` route group and resolve to the same paths; duplicates fail the build.
+
+To configure it by hand instead:
+
 1. Create an application at <https://dashboard.clerk.com>.
 2. Copy the publishable and secret keys into `.env.local`:
    ```
@@ -170,7 +191,13 @@ production.
 3. Optional: add a webhook endpoint at `https://your-domain/api/webhooks/clerk`
    subscribed to `user.updated` and `user.deleted`, and copy the signing secret to
    `CLERK_WEBHOOK_SECRET`. This keeps profiles in sync and cleans up deleted users.
-4. Restart. `/sign-in` now renders Clerk, styled to match the product.
+4. Restart. `/sign-in` now renders Clerk styled to match the product, `/app`
+   requires a signed-in user, and the marketing header switches to
+   "Open workspace" plus an account control once you are signed in.
+
+The end-to-end suite deliberately pins itself to local mode (see
+`playwright.config.ts`) so it stays credential-free and does not depend on a
+Clerk instance or a real test user.
 
 ### Supabase (database & storage)
 

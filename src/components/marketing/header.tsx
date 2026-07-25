@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ArrowUpRight, Menu, X } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
+import { ClerkAuthControls, ClerkAuthControlsMobile } from './auth-controls'
 import { cn } from '@/lib/utils'
 
 const NAV = [
@@ -18,7 +19,7 @@ const NAV = [
  * Marketing header. Full-bleed and visually light, it compacts slightly once the
  * page scrolls so the hero keeps the full weight of the composition.
  */
-export function MarketingHeader() {
+export function MarketingHeader({ clerkEnabled = false }: { clerkEnabled?: boolean }) {
   const pathname = usePathname()
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
@@ -78,21 +79,25 @@ export function MarketingHeader() {
           })}
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
-          <Link
-            href="/sign-in"
-            className="rounded-control px-3 py-1.5 text-[13.5px] text-ink-secondary transition-colors duration-200 hover:text-ink"
-          >
-            Sign In
-          </Link>
-          <Link
-            href="/sign-up"
-            className="group inline-flex items-center gap-1.5 rounded-control bg-ink px-3.5 py-2 text-[13.5px] font-medium text-white transition-colors duration-200 ease-editorial hover:bg-ink/90"
-          >
-            Start a Case
-            <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-200 ease-editorial group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </Link>
-        </div>
+        {clerkEnabled ? (
+          <ClerkAuthControls className="hidden md:flex" />
+        ) : (
+          <div className="hidden items-center gap-2 md:flex">
+            <Link
+              href="/sign-in"
+              className="rounded-control px-3 py-1.5 text-[13.5px] text-ink-secondary transition-colors duration-200 hover:text-ink"
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/sign-up"
+              className="group inline-flex items-center gap-1.5 rounded-control bg-ink px-3.5 py-2 text-[13.5px] font-medium text-white transition-colors duration-200 ease-editorial hover:bg-ink/90"
+            >
+              Start a Case
+              <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-200 ease-editorial group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </Link>
+          </div>
+        )}
 
         <button
           type="button"
@@ -121,22 +126,26 @@ export function MarketingHeader() {
               </Link>
             ))}
           </nav>
-          <div className="mt-5 flex flex-col gap-2.5">
-            <Link
-              href="/sign-up"
-              onClick={() => setOpen(false)}
-              className="inline-flex h-11 items-center justify-center rounded-control bg-ink text-[15px] font-medium text-white"
-            >
-              Start a case
-            </Link>
-            <Link
-              href="/sign-in"
-              onClick={() => setOpen(false)}
-              className="inline-flex h-11 items-center justify-center rounded-control border border-line-strong text-[15px] text-ink"
-            >
-              Sign in
-            </Link>
-          </div>
+          {clerkEnabled ? (
+            <ClerkAuthControlsMobile onNavigate={() => setOpen(false)} />
+          ) : (
+            <div className="mt-5 flex flex-col gap-2.5">
+              <Link
+                href="/sign-up"
+                onClick={() => setOpen(false)}
+                className="inline-flex h-11 items-center justify-center rounded-control bg-ink text-[15px] font-medium text-white"
+              >
+                Start a case
+              </Link>
+              <Link
+                href="/sign-in"
+                onClick={() => setOpen(false)}
+                className="inline-flex h-11 items-center justify-center rounded-control border border-line-strong text-[15px] text-ink"
+              >
+                Sign in
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </header>

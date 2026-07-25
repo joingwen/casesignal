@@ -35,6 +35,12 @@ export default defineConfig({
           // data directory and cannot collide with a running dev server.
           PGLITE_DATA_DIR: '.casesignal/e2e/pgdata',
           LOCAL_STORAGE_DIR: '.casesignal/e2e/storage',
+          // The smoke suite deliberately runs in local mode so it stays
+          // credential-free and deterministic: it must not depend on a Clerk
+          // instance, a hosted sign-in page or a real test user. Clerk itself is
+          // covered by `clerk doctor` and by signing in against the dev instance.
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: '',
+          CLERK_SECRET_KEY: '',
         },
       },
 })
