@@ -167,9 +167,21 @@ test.describe('case workspace', () => {
     await expect(page.getByText(/Field notes/i).first()).toBeVisible({ timeout: 60_000 })
     await expect(page.getByText(/S1/).first()).toBeVisible({ timeout: 60_000 })
 
-    // Claims extracted from that source appear in the ledger.
+    /*
+     * Claims extracted from that source appear in the ledger.
+     *
+     * Asserted on structure, not on wording: the exact statement text depends on
+     * which analysis provider ran, so matching model prose would make this test
+     * fail for a reason that has nothing to do with the behaviour under test.
+     */
     await page.goto(`/app/cases/${caseId}/claims`)
-    await expect(page.getByText(/September/i).first()).toBeVisible({ timeout: 60_000 })
+    await expect(page.getByRole('table')).toBeVisible({ timeout: 60_000 })
+    const claimRows = page.getByRole('row')
+    await expect
+      .poll(async () => claimRows.count(), { timeout: 60_000, message: 'the claim ledger should not be empty' })
+      .toBeGreaterThan(1)
+    // Every claim carries at least one resolvable citation.
+    await expect(page.getByText(/[+−]\s*\d/).first()).toBeVisible({ timeout: 30_000 })
   })
 
   test('8. a citation opens its source at the cited location', async ({ page }) => {

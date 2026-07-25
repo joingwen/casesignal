@@ -43,6 +43,11 @@ export default defineConfig({
           // covered by `clerk doctor` and by signing in against the dev instance.
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: '',
           CLERK_SECRET_KEY: '',
+          // Analysis is pinned to the deterministic local analyzers too. A smoke
+          // suite must not bill a paid API on every run, and model output is not
+          // stable enough to assert against.
+          OPENAI_API_KEY: '',
+          ANTHROPIC_API_KEY: '',
         },
       },
 })
