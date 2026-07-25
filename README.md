@@ -34,7 +34,7 @@ every factual finding links to the precise source excerpt it came from.
 - [Required services](#required-services)
   - [Clerk](#clerk-authentication)
   - [Supabase](#supabase-database--storage)
-  - [Anthropic](#anthropic-analysis)
+  - [AI provider](#ai-provider-analysis)
   - [Voyage](#voyage-optional-semantic-retrieval)
   - [Stripe](#stripe-billing)
 - [Database commands](#database-commands)
@@ -80,7 +80,7 @@ service upgrades one capability; none of them gate the product.
 | Database | Embedded Postgres (PGlite) at `.casesignal/pgdata`, same schema and migrations | Supabase Postgres via `DATABASE_URL` |
 | File storage | Private local directory, streamed through an authorized route | Supabase Storage private bucket with signed URLs |
 | Authentication | Local cookie session, clearly labelled in the UI | Clerk sign-in, sessions, profiles, organizations |
-| Analysis | Deterministic local analyzers over the real source text | Claude for extraction, discrepancies, answers, briefs, vision |
+| Analysis | Deterministic local analyzers over the real source text | OpenAI or Anthropic for extraction, discrepancies, answers, briefs, vision |
 | Retrieval | Postgres full-text search + BM25 reranking | Adds Voyage embeddings for semantic retrieval |
 | Billing | Read-only; upgrade buttons disabled with a visible reason | Stripe checkout, portal and webhooks |
 
@@ -226,19 +226,30 @@ application, so semantic retrieval works on any Postgres. If you enable the
 `vector` extension you can add an indexed vector column in a follow-up migration
 without changing application code.
 
-### Anthropic (analysis)
+### AI provider (analysis)
+
+CaseSignal is provider-agnostic. Configure **either** OpenAI or Anthropic — OpenAI
+takes precedence when both are present:
+
+```
+OPENAI_API_KEY=sk-proj-...
+OPENAI_MODEL=gpt-4.1
+```
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
 ANTHROPIC_MODEL=claude-sonnet-5
 ```
 
-The model is read from the environment at call time and is not hardcoded anywhere.
-Change `ANTHROPIC_MODEL` to switch models without touching code.
+Models are read from the environment at call time and are not hardcoded anywhere.
+Change the `*_MODEL` variable to switch models without touching code.
 
-This enables Claude for source summaries, entity/claim/timeline/relationship
-extraction, discrepancy analysis, retrieval planning, source-backed answers, brief
-drafting, missing-evidence suggestions, and vision extraction from images.
+This enables source summaries, entity/claim/timeline/relationship extraction,
+discrepancy analysis, retrieval planning, source-backed answers, brief drafting,
+missing-evidence suggestions, and vision transcription of document images.
+
+Adding a third provider means implementing `complete`, `stream` and `describeImage`
+in `src/server/ai/provider.ts`; nothing downstream changes.
 
 ### Voyage (optional semantic retrieval)
 

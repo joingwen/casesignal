@@ -9,26 +9,51 @@ import { recordAnalysisRun } from './ledger'
 /**
  * Central AI provider configuration.
  *
- * The model is read from ANTHROPIC_MODEL at call time and is never hardcoded
- * anywhere else in the codebase. When no API key is configured the application
- * does not degrade to fake output: each analysis service has a deterministic
- * local implementation that reads the actual source text, and every result is
- * labelled with the provider that produced it.
+ * CaseSignal is provider-agnostic. OpenAI and Anthropic are both first-class,
+ * selected purely by which key is present, and the model is always read from the
+ * environment — never hardcoded anywhere else in the codebase. When neither is
+ * configured the application does not degrade to fake output: each analysis
+ * service has a deterministic local implementation that reads the actual source
+ * text, and every result is labelled with the provider that produced it.
+ *
+ * Adding a provider means implementing `complete`, `stream` and `describeImage`
+ * below; nothing downstream changes.
  */
 
-/** Fallback used only when ANTHROPIC_MODEL is unset. Declared once. */
-const DEFAULT_MODEL = 'claude-sonnet-5'
+export type AiProvider = 'openai' | 'anthropic' | 'local'
+
+/** Defaults used only when the corresponding *_MODEL variable is unset. */
+const DEFAULT_MODELS = {
+  openai: 'gpt-4.1',
+  anthropic: 'claude-sonnet-5',
+} as const
+
+/**
+ * Approximate per-million-token pricing, used only for the usage ledger. These
+ * are estimates for cost visibility, not billing figures.
+ */
+const COST_PER_MTOK: Record<'openai' | 'anthropic', { input: number; output: number }> = {
+  openai: { input: 2, output: 8 },
+  anthropic: { input: 3, output: 15 },
+}
+
+/** OpenAI is preferred when both are configured, matching the documented setup. */
+export function activeProvider(): AiProvider {
+  if (capabilities.openai) return 'openai'
+  if (capabilities.anthropic) return 'anthropic'
+  return 'local'
+}
 
 export function activeModel(): string {
-  return env.ANTHROPIC_MODEL ?? DEFAULT_MODEL
+  const provider = activeProvider()
+  if (provider === 'openai') return env.OPENAI_MODEL ?? DEFAULT_MODELS.openai
+  if (provider === 'anthropic') return env.ANTHROPIC_MODEL ?? DEFAULT_MODELS.anthropic
+  return 'local-deterministic'
 }
 
-export function providerName(): 'anthropic' | 'local' {
-  return capabilities.anthropic ? 'anthropic' : 'local'
+export function providerName(): AiProvider {
+  return activeProvider()
 }
-
-/** Approximate per-million-token pricing, used only for the usage ledger. */
-const COST_PER_MTOK = { input: 3, output: 15 }
 
 export interface Usage {
   inputTokens: number
@@ -40,23 +65,60 @@ export interface CompletionRequest {
   prompt: string
   maxTokens?: number
   temperature?: number
+  /** Ask the provider for a JSON object rather than prose. */
+  json?: boolean
 }
 
-let clientPromise: Promise<import('@anthropic-ai/sdk').default> | null = null
+/* ------------------------------------------------------------------ clients */
 
-async function client() {
-  if (!capabilities.anthropic) throw new AnalysisError('Anthropic is not configured.')
-  if (!clientPromise) {
-    clientPromise = import('@anthropic-ai/sdk').then(
+let openaiPromise: Promise<import('openai').default> | null = null
+let anthropicPromise: Promise<import('@anthropic-ai/sdk').default> | null = null
+
+async function openaiClient() {
+  if (!openaiPromise) {
+    openaiPromise = import('openai').then((mod) => new mod.default({ apiKey: env.OPENAI_API_KEY, maxRetries: 2 }))
+  }
+  return openaiPromise
+}
+
+async function anthropicClient() {
+  if (!anthropicPromise) {
+    anthropicPromise = import('@anthropic-ai/sdk').then(
       (mod) => new mod.default({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 2 }),
     )
   }
-  return clientPromise
+  return anthropicPromise
 }
 
+/* --------------------------------------------------------------- completion */
+
 export async function complete(request: CompletionRequest): Promise<{ text: string; usage: Usage }> {
-  const anthropic = await client()
-  const response = await anthropic.messages.create({
+  const provider = activeProvider()
+  if (provider === 'local') throw new AnalysisError('No AI provider is configured.')
+
+  if (provider === 'openai') {
+    const client = await openaiClient()
+    const response = await client.chat.completions.create({
+      model: activeModel(),
+      temperature: request.temperature ?? 0,
+      max_completion_tokens: request.maxTokens ?? 2048,
+      ...(request.json ? { response_format: { type: 'json_object' as const } } : {}),
+      messages: [
+        { role: 'system', content: request.system },
+        { role: 'user', content: request.prompt },
+      ],
+    })
+    return {
+      text: response.choices[0]?.message?.content ?? '',
+      usage: {
+        inputTokens: response.usage?.prompt_tokens ?? 0,
+        outputTokens: response.usage?.completion_tokens ?? 0,
+      },
+    }
+  }
+
+  const client = await anthropicClient()
+  const response = await client.messages.create({
     model: activeModel(),
     max_tokens: request.maxTokens ?? 2048,
     temperature: request.temperature ?? 0,
@@ -73,12 +135,41 @@ export async function complete(request: CompletionRequest): Promise<{ text: stri
   }
 }
 
-/** Streams assistant text deltas. Falls back to a single chunk when unavailable. */
+/** Streams assistant text deltas. */
 export async function* streamCompletion(
   request: CompletionRequest,
 ): AsyncGenerator<{ type: 'delta'; text: string } | { type: 'done'; usage: Usage }> {
-  const anthropic = await client()
-  const stream = anthropic.messages.stream({
+  const provider = activeProvider()
+  if (provider === 'local') throw new AnalysisError('No AI provider is configured.')
+
+  if (provider === 'openai') {
+    const client = await openaiClient()
+    const stream = await client.chat.completions.create({
+      model: activeModel(),
+      temperature: request.temperature ?? 0,
+      max_completion_tokens: request.maxTokens ?? 2048,
+      stream: true,
+      stream_options: { include_usage: true },
+      messages: [
+        { role: 'system', content: request.system },
+        { role: 'user', content: request.prompt },
+      ],
+    })
+    const usage: Usage = { inputTokens: 0, outputTokens: 0 }
+    for await (const chunk of stream) {
+      const delta = chunk.choices[0]?.delta?.content
+      if (delta) yield { type: 'delta', text: delta }
+      if (chunk.usage) {
+        usage.inputTokens = chunk.usage.prompt_tokens ?? 0
+        usage.outputTokens = chunk.usage.completion_tokens ?? 0
+      }
+    }
+    yield { type: 'done', usage }
+    return
+  }
+
+  const client = await anthropicClient()
+  const stream = client.messages.stream({
     model: activeModel(),
     max_tokens: request.maxTokens ?? 2048,
     temperature: request.temperature ?? 0,
@@ -96,6 +187,79 @@ export async function* streamCompletion(
     usage: { inputTokens: final.usage.input_tokens, outputTokens: final.usage.output_tokens },
   }
 }
+
+/* ------------------------------------------------------------------- vision */
+
+/**
+ * Transcribes a document image. Both providers accept a base64 data URL; the
+ * caller supplies the instruction so transcription rules stay in one place.
+ */
+export async function describeImage(input: {
+  buffer: Buffer
+  mimeType: string
+  system: string
+  prompt: string
+  maxTokens?: number
+}): Promise<{ text: string; usage: Usage }> {
+  const provider = activeProvider()
+  if (provider === 'local') throw new AnalysisError('No AI provider is configured.')
+
+  const media = ['image/png', 'image/jpeg', 'image/webp'].includes(input.mimeType) ? input.mimeType : 'image/png'
+  const base64 = input.buffer.toString('base64')
+
+  if (provider === 'openai') {
+    const client = await openaiClient()
+    const response = await client.chat.completions.create({
+      model: activeModel(),
+      temperature: 0,
+      max_completion_tokens: input.maxTokens ?? 3000,
+      messages: [
+        { role: 'system', content: input.system },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: input.prompt },
+            { type: 'image_url', image_url: { url: `data:${media};base64,${base64}` } },
+          ],
+        },
+      ],
+    })
+    return {
+      text: response.choices[0]?.message?.content ?? '',
+      usage: {
+        inputTokens: response.usage?.prompt_tokens ?? 0,
+        outputTokens: response.usage?.completion_tokens ?? 0,
+      },
+    }
+  }
+
+  const client = await anthropicClient()
+  const response = await client.messages.create({
+    model: activeModel(),
+    max_tokens: input.maxTokens ?? 3000,
+    temperature: 0,
+    system: input.system,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: media as 'image/png', data: base64 } },
+          { type: 'text', text: input.prompt },
+        ],
+      },
+    ],
+  })
+  const text = response.content
+    .filter((block) => block.type === 'text')
+    .map((block) => ('text' in block ? block.text : ''))
+    .join('\n')
+  return {
+    text,
+    usage: { inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens },
+  }
+}
+
+/* --------------------------------------------------------------- structured */
 
 export interface StructuredRequest<T extends z.ZodTypeAny> {
   operation: AnalysisOperation
@@ -121,11 +285,18 @@ export async function structured<T extends z.ZodTypeAny>(
 ): Promise<{ data: z.infer<T>; usage: Usage }> {
   const started = Date.now()
   const total: Usage = { inputTokens: 0, outputTokens: 0 }
+  const provider = activeProvider()
+  if (provider === 'local') throw new AnalysisError('No AI provider is configured.')
 
   const instruction = `${request.prompt}\n\nReturn ONLY a JSON object matching this shape. No prose, no markdown fence.\n${request.schemaHint}`
 
   try {
-    let attempt = await complete({ system: request.system, prompt: instruction, maxTokens: request.maxTokens ?? 4096 })
+    let attempt = await complete({
+      system: request.system,
+      prompt: instruction,
+      maxTokens: request.maxTokens ?? 4096,
+      json: true,
+    })
     total.inputTokens += attempt.usage.inputTokens
     total.outputTokens += attempt.usage.outputTokens
 
@@ -135,6 +306,7 @@ export async function structured<T extends z.ZodTypeAny>(
         system: request.system,
         prompt: `Your previous response did not satisfy the required JSON shape.\n\nPrevious response:\n${attempt.text.slice(0, 4000)}\n\nValidation errors:\n${parsed.errors}\n\nReturn ONLY corrected JSON matching:\n${request.schemaHint}`,
         maxTokens: request.maxTokens ?? 4096,
+        json: true,
       })
       total.inputTokens += repair.usage.inputTokens
       total.outputTokens += repair.usage.outputTokens
@@ -148,7 +320,7 @@ export async function structured<T extends z.ZodTypeAny>(
         sourceId: request.sourceId ?? null,
         operation: request.operation,
         status: 'failed',
-        provider: 'anthropic',
+        provider,
         model: activeModel(),
         usage: total,
         durationMs: Date.now() - started,
@@ -164,7 +336,7 @@ export async function structured<T extends z.ZodTypeAny>(
       sourceId: request.sourceId ?? null,
       operation: request.operation,
       status: 'complete',
-      provider: 'anthropic',
+      provider,
       model: activeModel(),
       usage: total,
       durationMs: Date.now() - started,
@@ -178,7 +350,7 @@ export async function structured<T extends z.ZodTypeAny>(
       sourceId: request.sourceId ?? null,
       operation: request.operation,
       status: 'failed',
-      provider: 'anthropic',
+      provider,
       model: activeModel(),
       usage: total,
       durationMs: Date.now() - started,
@@ -238,8 +410,10 @@ export function extractJson(raw: string): string | null {
   return null
 }
 
-export function estimateCostUsd(usage: Usage): number {
-  return (usage.inputTokens / 1_000_000) * COST_PER_MTOK.input + (usage.outputTokens / 1_000_000) * COST_PER_MTOK.output
+export function estimateCostUsd(usage: Usage, provider: AiProvider = activeProvider()): number {
+  if (provider === 'local') return 0
+  const rate = COST_PER_MTOK[provider]
+  return (usage.inputTokens / 1_000_000) * rate.input + (usage.outputTokens / 1_000_000) * rate.output
 }
 
 /** Rough token estimate used for budgeting retrieval context. */

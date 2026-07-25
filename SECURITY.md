@@ -256,7 +256,8 @@ all.
 
 ## 12. Secrets
 
-Never exposed to the client: `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`,
+Never exposed to the client: `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`,
+`ANTHROPIC_API_KEY`,
 `VOYAGE_API_KEY`, `STRIPE_SECRET_KEY`, `CLERK_SECRET_KEY`, webhook signing
 secrets, `DATABASE_URL`, `RATE_LIMIT_SECRET`.
 

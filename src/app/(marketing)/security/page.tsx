@@ -131,7 +131,7 @@ const PROVIDERS: { label: string; role: string; configured: boolean; fallback: s
   {
     label: 'AI provider',
     role: 'Extraction, discrepancy analysis and source-backed answers',
-    configured: capabilities.anthropic,
+    configured: capabilities.ai,
     fallback: 'Deterministic local analysis runs instead and no source text is sent anywhere.',
   },
   {

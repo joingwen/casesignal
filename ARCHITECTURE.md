@@ -32,7 +32,7 @@ a product that cites and a product that appears to cite.
 | Components | Radix primitives + CVA | Accessible behaviour without inheriting a visual identity |
 | Database | Postgres via Drizzle | Full-text search, `CHECK` constraints, JSONB and cascades are all load-bearing |
 | Local database | PGlite (embedded Postgres) | Same SQL, same migrations, zero credentials |
-| AI | Anthropic SDK, model from `ANTHROPIC_MODEL` | Model choice is configuration, not code |
+| AI | OpenAI or Anthropic SDK, model from the environment | Provider and model are configuration, not code |
 | Retrieval | Postgres FTS + BM25, optional Voyage | Lexical retrieval always works; semantic is additive |
 | Auth | Clerk, with a local development session | Production-grade auth without blocking a clean checkout |
 | Payments | Stripe | Webhook-driven; the client never asserts a plan |
@@ -52,7 +52,7 @@ This is not a demo mode. It is the same code paths with different adapters:
 DATABASE_URL set?        → postgres-js          : PGlite (.casesignal/pgdata)
 Supabase keys set?       → private bucket       : local dir + authorized route
 Clerk keys set?          → Clerk session        : signed local cookie session
-ANTHROPIC_API_KEY set?   → Claude services      : deterministic local analyzers
+OPENAI/ANTHROPIC key?    → model-backed services : deterministic local analyzers
 VOYAGE_API_KEY set?      → hybrid retrieval     : lexical retrieval only
 Stripe keys set?         → checkout + portal    : read-only billing, stated reason
 ```
@@ -202,8 +202,9 @@ source summarizer · entity extractor · claim extractor · timeline extractor �
 relationship extractor · discrepancy analyzer · retrieval query planner ·
 source-backed answer generator · brief section writer · missing-evidence suggester
 
-Each is a dispatcher: with Anthropic configured it runs a narrow, schema-validated
-prompt; without it, the deterministic local analyzer runs over the same excerpts.
+Each is a dispatcher: with an AI provider configured it runs a narrow,
+schema-validated prompt; without one, the deterministic local analyzer runs over
+the same excerpts.
 Both return the identical validated shape, so **no downstream code branches on
 which provider ran**.
 

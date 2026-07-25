@@ -2,7 +2,7 @@
   "name": "casesignal",
   "version": "1.0.0",
   "private": true,
-  "description": "CaseSignal \u2014 Turn public records into source-backed case files.",
+  "description": "CaseSignal — Turn public records into source-backed case files.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -53,6 +53,7 @@
     "lucide-react": "^1.26.0",
     "mammoth": "^1.12.0",
     "next": "^16.2.11",
+    "openai": "^6.49.0",
     "papaparse": "^5.5.4",
     "pdfjs-dist": "^4.10.38",
     "postgres": "^3.4.9",

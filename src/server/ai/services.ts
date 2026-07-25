@@ -16,7 +16,7 @@ import {
   type LocalChunk,
 } from './local/analyzers'
 import { ANSWER_PRINCIPLES, CORE_PRINCIPLES, PROMPTS, excerptBlock } from './prompts'
-import { activeModel, complete, providerName, structured } from './provider'
+import { activeModel, activeProvider, complete, providerName, structured, type AiProvider } from './provider'
 import {
   SCHEMA_HINTS,
   claimSchema,
@@ -40,8 +40,8 @@ import {
 /**
  * The ten analysis services.
  *
- * Each is a thin dispatcher: with Anthropic configured it runs a focused,
- * schema-validated prompt; without it, the deterministic local analyzer runs
+ * Each is a thin dispatcher: with an AI provider configured it runs a focused,
+ * schema-validated prompt; without one, the deterministic local analyzer runs
  * against the same excerpts. Both return the same validated shape, and both
  * write to the usage ledger, so the rest of the application never branches on
  * which provider produced a result.
@@ -104,7 +104,7 @@ export async function summarizeSource(input: {
   format: string
   chunks: ServiceChunk[]
 }): Promise<SourceSummaryResult> {
-  if (!capabilities.anthropic) {
+  if (!capabilities.ai) {
     return runLocal('source_summary', input.caseId, input.sourceId, () =>
       localSummary(input.title, input.format, toLocal(input.chunks)),
     )
@@ -129,7 +129,7 @@ export async function extractEntities(input: {
   sourceId?: string | null
   chunks: ServiceChunk[]
 }): Promise<EntityExtractionResult> {
-  if (!capabilities.anthropic) {
+  if (!capabilities.ai) {
     return runLocal('entity_extraction', input.caseId, input.sourceId ?? null, () => localEntities(toLocal(input.chunks)), (r) => ({
       count: r.entities.length,
     }))
@@ -155,7 +155,7 @@ export async function extractClaims(input: {
   objective: string
   chunks: ServiceChunk[]
 }): Promise<ClaimExtractionResult> {
-  if (!capabilities.anthropic) {
+  if (!capabilities.ai) {
     return runLocal('claim_extraction', input.caseId, input.sourceId ?? null, () =>
       localClaims(input.objective, toLocal(input.chunks)),
       (r) => ({ count: r.claims.length }),
@@ -184,7 +184,7 @@ export async function extractTimeline(input: {
   sourceId?: string | null
   chunks: ServiceChunk[]
 }): Promise<TimelineExtractionResult> {
-  if (!capabilities.anthropic) {
+  if (!capabilities.ai) {
     return runLocal('timeline_extraction', input.caseId, input.sourceId ?? null, () => localTimeline(toLocal(input.chunks)), (r) => ({
       count: r.events.length,
     }))
@@ -210,7 +210,7 @@ export async function extractRelationships(input: {
   chunks: ServiceChunk[]
 }): Promise<RelationshipExtractionResult> {
   if (input.entities.length < 2) return { relationships: [] }
-  if (!capabilities.anthropic) {
+  if (!capabilities.ai) {
     return runLocal('relationship_extraction', input.caseId, null, () =>
       localRelationships(input.entities, toLocal(input.chunks)),
       (r) => ({ count: r.relationships.length }),
@@ -242,7 +242,7 @@ export async function analyzeDiscrepancies(input: {
   caseId: string
   chunks: ServiceChunk[]
 }): Promise<DiscrepancyAnalysisResult> {
-  if (!capabilities.anthropic) {
+  if (!capabilities.ai) {
     return runLocal('discrepancy_analysis', input.caseId, null, () => localDiscrepancies(toLocal(input.chunks)), (r) => ({
       count: r.discrepancies.length,
     }))
@@ -268,7 +268,7 @@ export async function planQuery(input: {
   question: string
   sourceInventory: string
 }): Promise<QueryPlanResult> {
-  if (!capabilities.anthropic) {
+  if (!capabilities.ai) {
     return runLocal('query_planning', input.caseId, null, () => localQueryPlan(input.question))
   }
   try {
@@ -307,7 +307,7 @@ export interface AnswerResult {
   text: string
   usedChunkIds: string[]
   insufficient: boolean
-  provider: 'anthropic' | 'local'
+  provider: AiProvider
 }
 
 export async function generateAnswer(input: {
@@ -316,7 +316,7 @@ export async function generateAnswer(input: {
   objective: string
   chunks: ServiceChunk[]
 }): Promise<AnswerResult> {
-  if (!capabilities.anthropic) {
+  if (!capabilities.ai) {
     const result = await runLocal('answer_generation', input.caseId, null, () =>
       localAnswer(input.question, toLocal(input.chunks)),
     )
@@ -333,7 +333,7 @@ export async function generateAnswer(input: {
     caseId: input.caseId,
     operation: 'answer_generation',
     status: 'complete',
-    provider: 'anthropic',
+    provider: activeProvider(),
     model: activeModel(),
     usage,
     durationMs: Date.now() - started,
@@ -342,7 +342,7 @@ export async function generateAnswer(input: {
     text,
     usedChunkIds: input.chunks.map((c) => c.id),
     insufficient: /do not establish|does not establish/i.test(text),
-    provider: 'anthropic',
+    provider: activeProvider(),
   }
 }
 
@@ -363,7 +363,7 @@ export async function writeBriefSection(input: {
   context: string
   fallback: string
 }): Promise<string> {
-  if (!capabilities.anthropic) {
+  if (!capabilities.ai) {
     await runLocal('brief_section', input.caseId, null, () => input.fallback)
     return input.fallback
   }
@@ -378,7 +378,7 @@ export async function writeBriefSection(input: {
       caseId: input.caseId,
       operation: 'brief_section',
       status: 'complete',
-      provider: 'anthropic',
+      provider: activeProvider(),
       model: activeModel(),
       usage,
       durationMs: Date.now() - started,
@@ -399,7 +399,7 @@ export async function suggestMissingEvidence(input: {
   discrepancySubjects: string[]
   context: string
 }): Promise<MissingEvidenceResult> {
-  if (!capabilities.anthropic) {
+  if (!capabilities.ai) {
     return runLocal('missing_evidence', input.caseId, null, () =>
       localMissingEvidence({
         objective: input.objective,

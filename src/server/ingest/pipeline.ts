@@ -17,10 +17,11 @@ import {
 import { nextSourceLabel } from '@/lib/citations'
 import { PROCESSING_STATUS_META, type ProcessingStatus, type SourceFormat, type SourceKind } from '@/lib/domain'
 import { embedDocuments } from '@/server/retrieval/embeddings'
-import { capabilities, env } from '@/lib/env'
+import { capabilities } from '@/lib/env'
 import { extractClaims, extractEntities, extractTimeline, summarizeSource, type ServiceChunk } from '@/server/ai/services'
 import { normalizeEntityName } from '@/server/ai/local/text'
 import { recordUsage } from '@/server/ai/ledger'
+import { activeModel, activeProvider, describeImage } from '@/server/ai/provider'
 import { parseBuffer, parseHtmlDocument, parsePlainText, type ParseResult } from './parsers'
 
 /**
@@ -369,48 +370,34 @@ function buildChunks(parsed: ParseResult): ChunkInput[] {
   return chunks.filter((c) => c.text.trim().length > 0)
 }
 
+const VISION_SYSTEM =
+  'You transcribe document images for an evidence workspace. Transcribe visible text verbatim, preserving reading order and table structure. Do not summarise, correct, complete or interpret anything. If a passage is illegible write [illegible]. Divide the transcription into numbered regions with a line "## Region N" where N starts at 1, one region per visually distinct block (header, table, paragraph, signature block).'
+
 /**
- * Reads text out of an image using Claude vision when configured. Without a key
- * the image is kept as a source and flagged for manual review rather than being
- * given invented content.
+ * Reads text out of an image using whichever vision-capable provider is
+ * configured. Without one the image is kept as a source and flagged for manual
+ * review rather than being given invented content.
  */
 async function extractImageText(parsed: ParseResult, buffer: Buffer, mimeType: string): Promise<ParseResult> {
-  if (!capabilities.anthropic) {
+  if (!capabilities.ai) {
     return {
       ...parsed,
       warnings: [
         ...parsed.warnings,
-        'Text was not read from this image because vision extraction requires an Anthropic API key. The image is stored and can be cited manually.',
+        'Text was not read from this image because vision extraction requires an AI provider key (OPENAI_API_KEY or ANTHROPIC_API_KEY). The image is stored and can be cited manually.',
       ],
       confidence: 0,
     }
   }
-  const Anthropic = (await import('@anthropic-ai/sdk')).default
-  const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1 })
-  const media = ['image/png', 'image/jpeg', 'image/webp'].includes(mimeType) ? mimeType : 'image/png'
 
-  const response = await client.messages.create({
-    model: env.ANTHROPIC_MODEL ?? 'claude-sonnet-5',
-    max_tokens: 3000,
-    temperature: 0,
-    system:
-      'You transcribe document images for an evidence workspace. Transcribe visible text verbatim, preserving reading order and table structure. Do not summarise, correct, complete or interpret anything. If a passage is illegible write [illegible]. Divide the transcription into numbered regions with a line "## Region N" where N starts at 1, one region per visually distinct block (header, table, paragraph, signature block).',
-    messages: [
-      {
-        role: 'user',
-        content: [
-          { type: 'image', source: { type: 'base64', media_type: media as 'image/png', data: buffer.toString('base64') } },
-          { type: 'text', text: 'Transcribe this document image.' },
-        ],
-      },
-    ],
+  const { text: raw } = await describeImage({
+    buffer,
+    mimeType,
+    system: VISION_SYSTEM,
+    prompt: 'Transcribe this document image.',
+    maxTokens: 3000,
   })
-
-  const text = response.content
-    .filter((b) => b.type === 'text')
-    .map((b) => ('text' in b ? b.text : ''))
-    .join('\n')
-    .trim()
+  const text = raw.trim()
 
   if (!text) return { ...parsed, warnings: [...parsed.warnings, 'No text was legible in this image.'], confidence: 0 }
 
@@ -432,7 +419,13 @@ async function extractImageText(parsed: ParseResult, buffer: Buffer, mimeType: s
     pageCount: 1,
     wordCount: text.split(/\s+/).filter(Boolean).length,
     confidence: illegible > 3 ? 0.45 : 0.82,
-    metadata: { ...parsed.metadata, visionExtracted: true, illegibleMarkers: illegible },
+    metadata: {
+      ...parsed.metadata,
+      visionExtracted: true,
+      visionProvider: activeProvider(),
+      visionModel: activeModel(),
+      illegibleMarkers: illegible,
+    },
   }
 }
 

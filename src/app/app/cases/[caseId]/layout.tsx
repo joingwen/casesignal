@@ -45,7 +45,7 @@ export default async function CaseWorkspaceLayout({
             caseId={caseId}
             initialMessages={conversation.messages}
             suggestions={suggestions}
-            localAnalysis={!capabilities.anthropic}
+            localAnalysis={!capabilities.ai}
             canWrite={canWrite}
           />
         }

@@ -10,6 +10,7 @@ import { check } from '@/server/security/rate-limit'
 import { assertWithinLimit } from '@/server/billing/limits'
 import { retrieve, type RetrievedChunk } from '@/server/retrieval'
 import { generateAnswer, planQuery } from '@/server/ai/services'
+import type { AiProvider } from '@/server/ai/provider'
 import { verifyCitations, type ResolvedCitation } from '@/lib/citations'
 import { actionResult, type ActionResult } from './result'
 
@@ -39,7 +40,7 @@ export interface AskResult {
   retrievedCount: number
   invalidMarkers: string[]
   uncitedSentences: string[]
-  provider: 'anthropic' | 'local'
+  provider: AiProvider
 }
 
 export async function askCase(input: z.infer<typeof askSchema>): Promise<ActionResult<AskResult>> {

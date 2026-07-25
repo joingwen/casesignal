@@ -41,7 +41,9 @@ const schema = z.object({
   SUPABASE_STORAGE_BUCKET: optionalString,
   LOCAL_STORAGE_DIR: optionalString,
 
-  // AI
+  // AI — either provider works; OpenAI takes precedence when both are set.
+  OPENAI_API_KEY: optionalString,
+  OPENAI_MODEL: optionalString,
   ANTHROPIC_API_KEY: optionalString,
   ANTHROPIC_MODEL: optionalString,
   VOYAGE_API_KEY: optionalString,
@@ -83,8 +85,12 @@ export const capabilities = {
   clerkAuth: Boolean(env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && env.CLERK_SECRET_KEY),
   /** Supabase Storage configured; otherwise files are written to a local private directory. */
   supabaseStorage: Boolean(env.NEXT_PUBLIC_SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY),
-  /** Anthropic configured; otherwise deterministic local analysis is used. */
+  /** OpenAI configured. */
+  openai: Boolean(env.OPENAI_API_KEY),
+  /** Anthropic configured. */
   anthropic: Boolean(env.ANTHROPIC_API_KEY),
+  /** Any AI provider configured; otherwise deterministic local analysis is used. */
+  ai: Boolean(env.OPENAI_API_KEY || env.ANTHROPIC_API_KEY),
   /** Voyage embeddings configured; otherwise lexical retrieval only. */
   embeddings: Boolean(env.VOYAGE_API_KEY),
   /** Stripe configured; otherwise billing is read-only. */
@@ -115,12 +121,12 @@ export function missingSetupNotes(): { key: string; label: string; detail: strin
         'Set DATABASE_URL to a Supabase Postgres connection string to persist cases outside this machine.',
     })
   }
-  if (!capabilities.anthropic) {
+  if (!capabilities.ai) {
     notes.push({
-      key: 'anthropic',
+      key: 'ai',
       label: 'Local analysis mode',
       detail:
-        'Set ANTHROPIC_API_KEY and ANTHROPIC_MODEL to use Claude for extraction, discrepancy analysis and the case copilot.',
+        'Set OPENAI_API_KEY (with OPENAI_MODEL) or ANTHROPIC_API_KEY (with ANTHROPIC_MODEL) to use a language model for extraction, discrepancy analysis, image transcription and the case copilot.',
     })
   }
   if (!capabilities.embeddings) {

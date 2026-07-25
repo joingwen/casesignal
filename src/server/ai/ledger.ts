@@ -4,7 +4,7 @@ import { and, eq, sql } from 'drizzle-orm'
 import { getDb } from '@/server/db'
 import { analysisRuns, cases, usageEvents } from '@/server/db/schema'
 import type { AnalysisOperation, AnalysisRunStatus, UsageMetric } from '@/lib/domain'
-import { estimateCostUsd, type Usage } from './provider'
+import { estimateCostUsd, type AiProvider, type Usage } from './provider'
 
 /**
  * AI usage ledger.
@@ -18,7 +18,7 @@ export async function recordAnalysisRun(input: {
   sourceId?: string | null
   operation: AnalysisOperation
   status: AnalysisRunStatus
-  provider: 'anthropic' | 'local'
+  provider: AiProvider
   model: string
   usage: Usage
   durationMs: number
@@ -36,8 +36,7 @@ export async function recordAnalysisRun(input: {
     model: input.model,
     inputTokens: input.usage.inputTokens,
     outputTokens: input.usage.outputTokens,
-    estimatedCostUsd:
-      input.provider === 'anthropic' ? estimateCostUsd(input.usage).toFixed(6) : '0',
+    estimatedCostUsd: estimateCostUsd(input.usage, input.provider).toFixed(6),
     durationMs: input.durationMs,
     error: input.error ?? null,
     resultSummary: input.resultSummary ?? {},

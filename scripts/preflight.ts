@@ -60,11 +60,11 @@ const checks: Check[] = [
   },
   {
     name: 'AI analysis',
-    ok: has('ANTHROPIC_API_KEY'),
+    ok: has('OPENAI_API_KEY') || has('ANTHROPIC_API_KEY'),
     level: 'blocker',
     detail:
-      'Without ANTHROPIC_API_KEY, analysis runs on deterministic local heuristics. Claim extraction, discrepancy analysis, brief drafting and answers all still work and stay honestly labelled "Local analysis" — but the product is marketed as an AI investigation workspace, and scanned documents cannot be read at all without vision extraction.',
-    fix: 'Set ANTHROPIC_API_KEY and ANTHROPIC_MODEL from console.anthropic.com.',
+      'Without an AI provider key, analysis runs on deterministic local heuristics. Claim extraction, discrepancy analysis, brief drafting and answers all still work and stay honestly labelled "Local analysis" — but the product is marketed as an AI investigation workspace, and scanned documents cannot be read at all without vision extraction.',
+    fix: 'Set OPENAI_API_KEY (+ OPENAI_MODEL) or ANTHROPIC_API_KEY (+ ANTHROPIC_MODEL).',
   },
   {
     name: 'Semantic retrieval',
@@ -118,7 +118,14 @@ const blockers = checks.filter((c) => !c.ok && c.level === 'blocker')
 const warnings = checks.filter((c) => !c.ok && c.level === 'warning')
 const passed = checks.filter((c) => c.ok)
 
-console.log(`\n${bold('CaseSignal production preflight')}\n`)
+const aiProvider = process.env.OPENAI_API_KEY?.trim()
+  ? `OpenAI (${process.env.OPENAI_MODEL?.trim() || 'gpt-4.1'})`
+  : process.env.ANTHROPIC_API_KEY?.trim()
+    ? `Anthropic (${process.env.ANTHROPIC_MODEL?.trim() || 'claude-sonnet-5'})`
+    : 'local deterministic analysis'
+
+console.log(`\n${bold('CaseSignal production preflight')}`)
+console.log(dim(`AI provider: ${aiProvider}\n`))
 
 for (const check of passed) console.log(`  ${green('✓')} ${check.name}`)
 

@@ -21,6 +21,7 @@ import type { MessageView } from '@/server/queries/case-detail'
 import { askCase, clearConversation, convertAnswerToClaim } from '@/server/actions/copilot'
 import { cn } from '@/lib/utils'
 import { CitationChip } from './citation-chip'
+import type { AiProvider } from '@/server/ai/provider'
 
 type Citation = MessageView['citations'][number]
 
@@ -105,7 +106,7 @@ export function CopilotPanel({
   const [messages, setMessages] = React.useState<PendingMessage[]>(initialMessages)
   const [question, setQuestion] = React.useState('')
   const [busy, setBusy] = React.useState(false)
-  const [lastProvider, setLastProvider] = React.useState<'anthropic' | 'local' | null>(null)
+  const [lastProvider, setLastProvider] = React.useState<AiProvider | null>(null)
   const [convertFor, setConvertFor] = React.useState<MessageView | null>(null)
   const [claimStatement, setClaimStatement] = React.useState('')
   const [converting, setConverting] = React.useState(false)
