@@ -327,15 +327,53 @@ export async function getMissingEvidenceSuggestions(caseId: string): Promise<Act
   })
 }
 
+/**
+ * Provisions the fictional demonstration case on request.
+ *
+ * A workspace starts empty; the demo exists only because someone asked for it.
+ * It counts against the plan like any other case — otherwise the free-plan case
+ * limit could be bypassed indefinitely — and an existing demo is reopened rather
+ * than duplicated.
+ */
 export async function duplicateDemoCase(): Promise<ActionResult<{ caseId: string }>> {
   return actionResult(async () => {
     const session = await requireSession()
+    const db = await getDb()
+
+    const existing = await db
+      .select({ id: cases.id })
+      .from(cases)
+      .where(
+        and(
+          eq(cases.organizationId, session.organization.id),
+          eq(cases.isDemo, true),
+          eq(cases.status, 'active'),
+          isNull(cases.deletedAt),
+        ),
+      )
+      .limit(1)
+
+    if (existing[0]) return { caseId: existing[0].id }
+
+    await assertWithinLimit(session.organization.id, 'active_cases')
+
     const { seedDemoCase } = await import('@/server/demo/seed')
     const caseId = await seedDemoCase({
       organizationId: session.organization.id,
       profileId: session.profile.id,
       force: true,
     })
+
+    await recordAudit({
+      organizationId: session.organization.id,
+      caseId,
+      profileId: session.profile.id,
+      action: 'case.demo_created',
+      targetType: 'case',
+      targetId: caseId,
+      detail: { summary: 'Created the fictional demonstration case' },
+    })
+
     revalidatePath('/app')
     return { caseId }
   })

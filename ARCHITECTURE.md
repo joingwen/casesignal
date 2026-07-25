@@ -310,10 +310,15 @@ interface is one function so a shared store is a one-file change.
 to every deployment target including the embedded database, and semantic retrieval
 is an enhancement rather than the primary path.
 
-**Authored demo data.** The demonstration case is hand-written rather than
-generated, so it is byte-identical for every viewer and its citations resolve to
-precisely the locators the marketing site references. It flows through the same
-tables and the same citation code as a real case — nothing about it is special-cased.
+**Authored demo data, provisioned on request.** The demonstration case is
+hand-written rather than generated, so it is byte-identical for every viewer and
+its citations resolve to precisely the locators the marketing site references. It
+flows through the same tables and the same citation code as a real case — nothing
+about it is special-cased, including plan limits.
+
+It is never seeded automatically. A new workspace is empty, and the demo appears
+only when a user clicks **Open the demo case**, so a production deployment never
+contains fictional records that nobody asked for.
 
 **Tailwind v3 over v4.** v4's CSS-first configuration is attractive, but v3 has the
 broadest compatibility with the Radix/CVA/React Flow/Recharts ecosystem this

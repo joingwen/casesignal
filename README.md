@@ -55,8 +55,15 @@ npm run dev
 ```
 
 Open <http://localhost:3000>. Sign in at `/sign-in` with any name and email — with
-no Clerk keys configured, CaseSignal issues a local development session — then open
-the seeded **Northstar County Equipment Procurement Review** demo case.
+no Clerk keys configured, CaseSignal issues a local development session.
+
+**The workspace starts empty**, exactly as it does for a real user. To explore a
+worked example, click **Open the demo case** on the dashboard, or seed it
+directly:
+
+```bash
+npm run db:seed -- --demo   # fictional Northstar County procurement case
+```
 
 No `.env` file is required. Copy `.env.example` to `.env.local` when you are ready
 to connect real services.
@@ -271,12 +278,16 @@ plan is trusted from the client.
 ## Database commands
 
 ```bash
-npm run db:generate     # generate a migration from schema changes
-npm run db:migrate      # apply pending migrations, print applied history
-npm run db:seed         # create a local analyst, workspace and the demo case
-npm run db:seed -- --force   # rebuild the demo case even if one exists
-npm run db:push         # push schema directly (development convenience)
+npm run db:generate          # generate a migration from schema changes
+npm run db:migrate           # apply pending migrations, print applied history
+npm run db:seed              # create a local analyst and an EMPTY workspace
+npm run db:seed -- --demo    # also create the fictional demonstration case
+npm run db:seed -- --demo --force   # rebuild the demo case even if one exists
+npm run db:push              # push schema directly (development convenience)
 ```
+
+Scripts load environment files the way Next.js does (`.env.local` before `.env`),
+so `db:migrate` targets the same database the app does.
 
 Migrations also apply automatically on first database connection, so `npm run dev`
 works on a clean checkout without a manual migration step.
@@ -350,6 +361,18 @@ npm run test:e2e
 
 **Vercel + Supabase** is the intended target.
 
+Run the preflight first — it exits non-zero on anything that would cause data
+loss or break a core promise, and explains the consequence of every gap:
+
+```bash
+npm run preflight
+```
+
+It treats a missing hosted database, missing authentication, missing private file
+storage, a non-https `NEXT_PUBLIC_APP_URL` and a missing Anthropic key as
+**blockers**; Stripe, Voyage, the Clerk webhook, the rate-limit secret and a
+development Clerk key as **degraded but deployable**.
+
 1. Push the repository to GitHub and import it into Vercel.
 2. Add every configured variable from `.env.example` to the Vercel project.
    Set `NEXT_PUBLIC_APP_URL` to the production origin.
@@ -359,6 +382,12 @@ npm run test:e2e
    `npm run db:migrate` locally against production credentials.
 5. Add the Stripe and Clerk webhook endpoints and copy their signing secrets in.
 6. Set `RATE_LIMIT_SECRET` to a long random string.
+7. Re-run `npm run preflight` against the production environment until it reports
+   no blockers.
+
+**Do not ship a seeded demo case to production.** `npm run db:seed` creates an
+empty workspace by default; the demo is only ever created when a signed-in user
+asks for it, counts against their plan, and is labelled fictional throughout.
 
 Notes:
 

@@ -24,7 +24,9 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_BASE_URL
     ? undefined
     : {
-        command: 'rm -rf .casesignal/e2e && npm run db:seed && npx next start --port 3411',
+        // `-- --demo` is explicit: the smoke suite needs the fictional case, but a
+        // normal install no longer ships with one.
+        command: 'rm -rf .casesignal/e2e && npm run db:seed -- --demo && npx next start --port 3411',
         url: 'http://127.0.0.1:3411',
         // Never reuse: a stray server on this port would silently test the wrong app.
         reuseExistingServer: false,

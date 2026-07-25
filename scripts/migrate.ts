@@ -7,7 +7,7 @@
  * embedded PGlite database under .casesignal/pgdata is used, which is what the
  * zero-credential local setup runs on.
  */
-import 'dotenv/config'
+import './load-env'
 import { closeDb, getDb, getDriver } from '../src/server/db'
 import { sql } from 'drizzle-orm'
 
