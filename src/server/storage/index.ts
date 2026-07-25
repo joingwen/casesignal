@@ -39,11 +39,7 @@ export async function putObject(key: string, body: Buffer, contentType: string):
       `${env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/${bucket()}/${encodeURI(key)}`,
       {
         method: 'POST',
-        headers: {
-          authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-          'content-type': contentType,
-          'x-upsert': 'true',
-        },
+        headers: storageHeaders({ 'content-type': contentType, 'x-upsert': 'true' }),
         body: new Uint8Array(body),
       },
     )
@@ -62,7 +58,7 @@ export async function getObject(key: string): Promise<Buffer | null> {
   if (capabilities.supabaseStorage) {
     const response = await fetch(
       `${env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/${bucket()}/${encodeURI(key)}`,
-      { headers: { authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}` } },
+      { headers: storageHeaders() },
     )
     if (!response.ok) return null
     return Buffer.from(await response.arrayBuffer())
@@ -79,7 +75,7 @@ export async function deleteObject(key: string): Promise<void> {
   if (capabilities.supabaseStorage) {
     await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/${bucket()}/${encodeURI(key)}`, {
       method: 'DELETE',
-      headers: { authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}` },
+      headers: storageHeaders(),
     })
     return
   }
@@ -100,10 +96,7 @@ export async function getReadUrl(key: string, sourceId: string): Promise<string>
       `${env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/sign/${bucket()}/${encodeURI(key)}`,
       {
         method: 'POST',
-        headers: {
-          authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-          'content-type': 'application/json',
-        },
+        headers: storageHeaders({ 'content-type': 'application/json' }),
         body: JSON.stringify({ expiresIn: SIGNED_URL_TTL_SECONDS }),
       },
     )
@@ -117,6 +110,19 @@ export async function getReadUrl(key: string, sourceId: string): Promise<string>
 
 function bucket() {
   return env.SUPABASE_STORAGE_BUCKET ?? 'case-sources'
+}
+
+/**
+ * Supabase Storage authentication.
+ *
+ * Both headers are required. Legacy service-role keys are JWTs and are accepted
+ * as a bearer token, but the current `sb_secret_…` keys are opaque: sending one
+ * as a bare bearer token fails with "Invalid Compact JWS". The `apikey` header
+ * is what Supabase actually authenticates against, so both are always sent.
+ */
+function storageHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  const key = env.SUPABASE_SERVICE_ROLE_KEY ?? ''
+  return { authorization: `Bearer ${key}`, apikey: key, ...extra }
 }
 
 export const storageMode = capabilities.supabaseStorage ? 'supabase' : 'local'
