@@ -56,6 +56,7 @@ const schema = z.object({
   STRIPE_PRO_PRICE_ID: optionalString,
 
   // Ops
+  ALLOW_LOCAL_AUTH: optionalString,
   RATE_LIMIT_SECRET: optionalString,
   CRON_SECRET: optionalString,
   NEXT_PUBLIC_CONTACT_EMAIL: optionalString,
@@ -81,8 +82,19 @@ export const env = read()
 export const capabilities = {
   /** Hosted Postgres configured; otherwise an embedded PGlite database is used. */
   hostedDatabase: Boolean(env.DATABASE_URL),
-  /** Clerk configured; otherwise a local development session is used. */
+  /** Clerk configured; otherwise a local development session may be used. */
   clerkAuth: Boolean(env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && env.CLERK_SECRET_KEY),
+  /**
+   * Whether the local cookie session is permitted.
+   *
+   * It is a development convenience, not an authentication system: it accepts
+   * any email with no password. Allowing it in a production deployment would
+   * leave the workspace open to anyone who loads the page, so it is refused
+   * there unless someone deliberately opts in with ALLOW_LOCAL_AUTH=1.
+   */
+  localAuth:
+    !Boolean(env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && env.CLERK_SECRET_KEY) &&
+    (env.NODE_ENV !== 'production' || env.ALLOW_LOCAL_AUTH === '1'),
   /** Supabase Storage configured; otherwise files are written to a local private directory. */
   supabaseStorage: Boolean(env.NEXT_PUBLIC_SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY),
   /** OpenAI configured. */
@@ -108,9 +120,10 @@ export function missingSetupNotes(): { key: string; label: string; detail: strin
   if (!capabilities.clerkAuth) {
     notes.push({
       key: 'clerk',
-      label: 'Authentication running in local mode',
-      detail:
-        'Set NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY to enable Clerk sign-in, organizations and profile management.',
+      label: capabilities.localAuth ? 'Authentication running in local mode' : 'Authentication is not configured',
+      detail: capabilities.localAuth
+        ? 'Set NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY to enable Clerk sign-in, organizations and profile management.'
+        : 'Sign-in is disabled because Clerk is not configured and the local development session is refused in production. Set NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY.',
     })
   }
   if (!capabilities.hostedDatabase) {

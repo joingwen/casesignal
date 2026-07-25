@@ -386,7 +386,7 @@ development Clerk key as **degraded but deployable**.
 
 1. Push the repository to GitHub and import it into Vercel.
 2. Add every configured variable from `.env.example` to the Vercel project.
-   Set `NEXT_PUBLIC_APP_URL` to the production origin.
+   Set `NEXT_PUBLIC_APP_URL` to `https://casesignal.pro`.
 3. Set `DATABASE_URL` to the Supabase **pooled** connection string and `DIRECT_URL`
    to the direct one.
 4. Deploy. Migrations apply automatically at first connection; you can also run
@@ -395,6 +395,12 @@ development Clerk key as **degraded but deployable**.
 6. Set `RATE_LIMIT_SECRET` to a long random string.
 7. Re-run `npm run preflight` against the production environment until it reports
    no blockers.
+
+**Authentication is refused rather than downgraded in production.** If a
+production build has no Clerk keys, sign-in is closed and the screen says so —
+CaseSignal will not fall back to the local cookie session on a public URL,
+because that session accepts any address without a password. `ALLOW_LOCAL_AUTH=1`
+overrides this deliberately; do not set it on a public deployment.
 
 **Do not ship a seeded demo case to production.** `npm run db:seed` creates an
 empty workspace by default; the demo is only ever created when a signed-in user

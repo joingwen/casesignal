@@ -96,7 +96,7 @@ const checks: Check[] = [
     level: 'blocker',
     detail:
       'NEXT_PUBLIC_APP_URL is not an https origin. Share links, OAuth redirects and Stripe return URLs are built from it and will point at the wrong host.',
-    fix: 'Set NEXT_PUBLIC_APP_URL to the production origin, e.g. https://casesignal.ai.',
+    fix: 'Set NEXT_PUBLIC_APP_URL to the production origin, e.g. https://casesignal.pro.',
   },
   {
     name: 'Clerk user webhook',

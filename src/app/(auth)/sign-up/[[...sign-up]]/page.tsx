@@ -3,6 +3,7 @@ import Link from 'next/link'
 
 import { capabilities } from '@/lib/env'
 import { LocalAuthForm } from '@/components/app/local-auth-form'
+import { AuthUnconfigured } from '@/components/app/auth-unconfigured'
 import { clerkAppearance } from '@/components/app/clerk-appearance'
 
 export const metadata: Metadata = {
@@ -22,7 +23,13 @@ export default async function SignUpPage() {
       </p>
 
       <div className="mt-7">
-        {capabilities.clerkAuth ? <ClerkSignUp /> : <LocalAuthForm redirectTo="/app" />}
+        {capabilities.clerkAuth ? (
+          <ClerkSignUp />
+        ) : capabilities.localAuth ? (
+          <LocalAuthForm redirectTo="/app" />
+        ) : (
+          <AuthUnconfigured action="sign-up" />
+        )}
       </div>
 
       <p className="mt-6 text-sm text-ink-secondary">

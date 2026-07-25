@@ -40,7 +40,11 @@ export interface SessionContext {
  * accepts an organization id from the client.
  */
 export async function getSession(): Promise<SessionContext | null> {
-  const identity = capabilities.clerkAuth ? await clerkIdentity() : await localIdentity()
+  const identity = capabilities.clerkAuth
+    ? await clerkIdentity()
+    : capabilities.localAuth
+      ? await localIdentity()
+      : null
   if (!identity) return null
   return provision(identity)
 }
@@ -74,7 +78,7 @@ async function clerkIdentity(): Promise<Identity | null> {
     [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim() || user?.username || email.split('@')[0] || 'Analyst'
   return {
     externalId: userId,
-    email: email || `${userId}@users.noreply.casesignal.ai`,
+    email: email || `${userId}@users.noreply.casesignal.pro`,
     displayName,
     avatarUrl: user?.imageUrl ?? null,
     orgExternalId: orgId ?? null,
@@ -84,9 +88,13 @@ async function clerkIdentity(): Promise<Identity | null> {
 }
 
 /**
- * Local development identity. Signed only by process-local cookie value; it is
- * never used when Clerk credentials are present, and the sign-in screen makes
- * the mode explicit.
+ * Local development identity.
+ *
+ * Backed by an unsigned process-local cookie and accepting any email with no
+ * password, so it is a development convenience rather than an authentication
+ * system. It is never reachable when Clerk is configured, and never in a
+ * production build unless ALLOW_LOCAL_AUTH=1 is set deliberately — see
+ * `capabilities.localAuth`.
  */
 async function localIdentity(): Promise<Identity | null> {
   const store = await cookies()

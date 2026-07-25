@@ -43,6 +43,10 @@ export default defineConfig({
           // covered by `clerk doctor` and by signing in against the dev instance.
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: '',
           CLERK_SECRET_KEY: '',
+          // The suite runs a production build, where the local cookie session is
+          // refused by default. This is the deliberate opt-in that exists for
+          // exactly this case — it is never set on a real deployment.
+          ALLOW_LOCAL_AUTH: '1',
           // Analysis is pinned to the deterministic local analyzers too. A smoke
           // suite must not bill a paid API on every run, and model output is not
           // stable enough to assert against.

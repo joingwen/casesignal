@@ -21,7 +21,7 @@ export interface FetchedPage {
   title: string
 }
 
-const USER_AGENT = 'CaseSignal/1.0 (+https://casesignal.ai)'
+const USER_AGENT = 'CaseSignal/1.0 (+https://casesignal.pro)'
 const TIMEOUT_MS = 15_000
 const MAX_REDIRECTS = 3
 const MAX_BODY_BYTES = 5 * 1024 * 1024
