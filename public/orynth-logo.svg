@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="CaseSignal">
+  <title>CaseSignal</title>
+  <!--
+    Directory tile. The mark alone on the warm paper ground, sized to the same
+    optical weight it carries in the app, with the citation node in the product
+    accent so the tile and the favicon read as one family.
+  -->
+  <rect width="512" height="512" rx="112" fill="#F5F5F2" />
+  <rect x="0.75" y="0.75" width="510.5" height="510.5" rx="111.25" fill="none" stroke="#111111" stroke-opacity="0.08" stroke-width="1.5" />
+
+  <!-- Optically centred on the mark's drawn bounds, not on its 24-unit box. -->
+  <g transform="translate(66 76) scale(15)">
+    <g fill="none" stroke="#111111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4.7 2.7h8L19 9v12.3H4.7Z" />
+      <path d="M12.7 2.7v6.3H19" />
+      <path d="M7.5 15.3h1.6l1.6-3.7 1.9 5.9 1.2-2.2h1.1" />
+    </g>
+    <circle cx="19" cy="17.7" r="2.5" fill="#3F76C5" />
+  </g>
+</svg>

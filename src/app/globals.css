@@ -1,0 +1,214 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --ring: 63 118 197;
+    --dash: 400;
+  }
+
+  * {
+    @apply border-line;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-page text-ink antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+    font-variant-ligatures: contextual;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background-color: #dbe6f7;
+    color: #111111;
+  }
+
+  :focus-visible {
+    outline: 2px solid #3f76c5;
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  /* Numeric data should align in tables and ledgers. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  /* ---- Marketing shell ------------------------------------------------- */
+
+  /*
+   * The atmospheric environment behind the landing canvas: layered paper
+   * fragments, faint grid coordinates and cool archival light. Built entirely
+   * from gradients so it costs nothing to load and never competes with content.
+   */
+  .archive-field {
+    background-color: #dfe5ee;
+    background-image:
+      radial-gradient(120% 80% at 12% 0%, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0) 55%),
+      radial-gradient(90% 70% at 88% 8%, rgba(63, 118, 197, 0.14) 0%, rgba(63, 118, 197, 0) 60%),
+      radial-gradient(100% 90% at 50% 100%, rgba(233, 130, 67, 0.09) 0%, rgba(233, 130, 67, 0) 62%),
+      linear-gradient(180deg, #e4e9f0 0%, #dde3ec 40%, #e8e8e4 100%);
+  }
+
+  .grid-coordinates {
+    background-image:
+      linear-gradient(to right, rgba(17, 17, 17, 0.055) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(17, 17, 17, 0.055) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+
+  .paper-tooth {
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(17, 17, 17, 0.018) 0 1px, transparent 1px),
+      radial-gradient(circle at 70% 65%, rgba(17, 17, 17, 0.014) 0 1px, transparent 1px);
+    background-size: 13px 13px, 19px 19px;
+  }
+
+  .rule {
+    @apply border-t border-line;
+  }
+
+  /* ---- Evidence primitives -------------------------------------------- */
+
+  .excerpt-mark {
+    background-color: #e4edfb;
+    box-shadow: inset 0 -1px 0 #b9cff0;
+    border-radius: 2px;
+    padding: 0.5px 2px;
+    transition: background-color 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .excerpt-mark[data-active='true'] {
+    background-color: #cddffa;
+    box-shadow:
+      inset 0 -2px 0 #3f76c5,
+      0 0 0 3px rgba(63, 118, 197, 0.1);
+  }
+
+  .excerpt-mark[data-tone='conflict'] {
+    background-color: #fbeae8;
+    box-shadow: inset 0 -1px 0 #e6b7b1;
+  }
+
+  .excerpt-mark[data-tone='conflict'][data-active='true'] {
+    box-shadow:
+      inset 0 -2px 0 #b4544c,
+      0 0 0 3px rgba(180, 84, 76, 0.1);
+  }
+
+  .redaction {
+    background-color: #111111;
+    border-radius: 1px;
+    display: inline-block;
+    opacity: 0.82;
+  }
+
+  /* ---- App chrome ------------------------------------------------------ */
+
+  .panel {
+    @apply rounded-panel border border-line bg-canvas;
+  }
+
+  .hairline-x > * + * {
+    @apply border-l border-line;
+  }
+
+  .scrollbar-slim {
+    scrollbar-width: thin;
+    scrollbar-color: #c9c9c2 transparent;
+  }
+
+  .scrollbar-slim::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+
+  .scrollbar-slim::-webkit-scrollbar-thumb {
+    background-color: #d5d5cf;
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  .scrollbar-slim::-webkit-scrollbar-thumb:hover {
+    background-color: #c1c1ba;
+  }
+
+  .scrollbar-slim::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  .mask-fade-r {
+    mask-image: linear-gradient(to right, black 82%, transparent 100%);
+  }
+
+  .mask-fade-b {
+    mask-image: linear-gradient(to bottom, black 78%, transparent 100%);
+  }
+}
+
+/* Reduced motion: keep everything legible and static. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* React Flow surface tuned to the CaseSignal palette. */
+.react-flow__attribution {
+  display: none;
+}
+
+.react-flow__edge-path {
+  stroke-width: 1.5;
+}
+
+.react-flow__handle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.react-flow__controls-button {
+  background: #ffffff;
+  border-bottom: 1px solid #dfdfd9;
+  color: #111111;
+  width: 26px;
+  height: 26px;
+}
+
+.react-flow__controls-button:hover {
+  background: #f5f5f2;
+}
+
+.react-flow__minimap {
+  border: 1px solid #dfdfd9;
+  border-radius: 8px;
+  overflow: hidden;
+}

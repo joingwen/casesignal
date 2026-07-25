@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 172 32" width="172" height="32" role="img" aria-label="CaseSignal">
+  <title>CaseSignal</title>
+  <!--
+    Horizontal lockup. The mark keeps its 24-unit geometry and is set at
+    cap-height alongside the wordmark, with the citation node in the product
+    accent so the lockup reads the same way the app does.
+  -->
+  <g transform="translate(0 4)">
+    <g fill="none" stroke="#111111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4.7 2.7h8L19 9v12.3H4.7Z" />
+      <path d="M12.7 2.7v6.3H19" />
+      <path d="M7.5 15.3h1.6l1.6-3.7 1.9 5.9 1.2-2.2h1.1" />
+    </g>
+    <circle cx="19" cy="17.7" r="2.5" fill="#3F76C5" />
+  </g>
+  <text
+    x="32"
+    y="21.5"
+    fill="#111111"
+    font-family="Geist, Inter, 'Helvetica Neue', system-ui, -apple-system, sans-serif"
+    font-size="19"
+    font-weight="600"
+    letter-spacing="-0.5"
+  >CaseSignal</text>
+</svg>

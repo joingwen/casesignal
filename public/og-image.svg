@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="CaseSignal — Evidence has a paper trail. Find it faster.">
+  <title>CaseSignal — Evidence has a paper trail. Find it faster.</title>
+
+  <defs>
+    <style>
+      .sans { font-family: Geist, Inter, 'Helvetica Neue', system-ui, -apple-system, sans-serif; }
+      .mono { font-family: 'Geist Mono', 'SF Mono', ui-monospace, Menlo, monospace; }
+    </style>
+    <clipPath id="sheet-a"><rect x="0" y="0" width="214" height="272" rx="6" /></clipPath>
+    <clipPath id="sheet-b"><rect x="0" y="0" width="214" height="272" rx="6" /></clipPath>
+  </defs>
+
+  <rect width="1200" height="630" fill="#F5F5F2" />
+
+  <!--
+    Abstract composition: two document fragments, the excerpts ruled inside
+    them, and the citation markers that point back at those excerpts. Everything
+    is drawn from the product's own vocabulary rather than decoration, held at
+    low opacity so the type stays the subject. One warm accent marks the single
+    conflicting reading.
+  -->
+  <g opacity="0.95">
+    <!-- fragment, rear -->
+    <g transform="translate(704 138) rotate(-6)">
+      <rect width="214" height="272" rx="6" fill="#FFFFFF" />
+      <rect width="214" height="272" rx="6" fill="#3F76C5" fill-opacity="0.05" />
+      <rect x="0.5" y="0.5" width="213" height="271" rx="6" fill="none" stroke="#3F76C5" stroke-opacity="0.24" />
+      <g clip-path="url(#sheet-a)" fill="#3F76C5">
+        <rect x="26" y="34" width="104" height="7" rx="3.5" fill-opacity="0.32" />
+        <rect x="26" y="62" width="162" height="5" rx="2.5" fill-opacity="0.16" />
+        <rect x="26" y="78" width="148" height="5" rx="2.5" fill-opacity="0.16" />
+        <rect x="26" y="94" width="158" height="5" rx="2.5" fill-opacity="0.16" />
+        <rect x="20" y="116" width="174" height="20" rx="4" fill-opacity="0.14" />
+        <rect x="26" y="123" width="136" height="6" rx="3" fill-opacity="0.42" />
+        <rect x="26" y="152" width="152" height="5" rx="2.5" fill-opacity="0.16" />
+        <rect x="26" y="168" width="120" height="5" rx="2.5" fill-opacity="0.16" />
+        <rect x="26" y="196" width="162" height="5" rx="2.5" fill-opacity="0.16" />
+        <rect x="26" y="212" width="94" height="5" rx="2.5" fill-opacity="0.16" />
+      </g>
+    </g>
+
+    <!-- fragment, front -->
+    <g transform="translate(898 214) rotate(5)">
+      <rect width="214" height="272" rx="6" fill="#FFFFFF" />
+      <rect x="0.5" y="0.5" width="213" height="271" rx="6" fill="none" stroke="#3F76C5" stroke-opacity="0.3" />
+      <g clip-path="url(#sheet-b)">
+        <g fill="#3F76C5">
+          <rect x="26" y="32" width="88" height="7" rx="3.5" fill-opacity="0.32" />
+          <rect x="26" y="60" width="160" height="5" rx="2.5" fill-opacity="0.16" />
+          <rect x="26" y="76" width="132" height="5" rx="2.5" fill-opacity="0.16" />
+          <rect x="26" y="104" width="150" height="5" rx="2.5" fill-opacity="0.16" />
+        </g>
+        <!-- the single conflicting reading -->
+        <rect x="20" y="124" width="174" height="20" rx="4" fill="#E98243" fill-opacity="0.16" />
+        <rect x="26" y="131" width="112" height="6" rx="3" fill="#E98243" fill-opacity="0.75" />
+        <g fill="#3F76C5">
+          <rect x="26" y="160" width="158" height="5" rx="2.5" fill-opacity="0.16" />
+          <rect x="26" y="176" width="106" height="5" rx="2.5" fill-opacity="0.16" />
+          <rect x="26" y="204" width="146" height="5" rx="2.5" fill-opacity="0.16" />
+          <rect x="26" y="220" width="164" height="5" rx="2.5" fill-opacity="0.16" />
+          <rect x="26" y="236" width="72" height="5" rx="2.5" fill-opacity="0.16" />
+        </g>
+      </g>
+    </g>
+
+    <!-- citation markers, tied back to the excerpts -->
+    <g stroke-linecap="round">
+      <path d="M690 268 L 640 268" stroke="#3F76C5" stroke-opacity="0.34" stroke-width="1.5" stroke-dasharray="3 5" />
+      <circle cx="638" cy="268" r="3.5" fill="#3F76C5" fill-opacity="0.55" />
+      <g transform="translate(636 250)">
+        <rect x="-118" y="0" width="118" height="34" rx="17" fill="#FFFFFF" stroke="#3F76C5" stroke-opacity="0.3" />
+        <circle cx="-98" cy="17" r="4" fill="#3F76C5" fill-opacity="0.7" />
+        <text class="mono" x="-84" y="22" font-size="14" fill="#3F76C5" fill-opacity="0.85">S2 p. 14</text>
+      </g>
+
+      <path d="M898 372 L 852 386" stroke="#E98243" stroke-opacity="0.5" stroke-width="1.5" stroke-dasharray="3 5" />
+      <circle cx="850" cy="386" r="3.5" fill="#E98243" fill-opacity="0.75" />
+      <g transform="translate(848 370)">
+        <rect x="-216" y="0" width="216" height="34" rx="17" fill="#FFFFFF" stroke="#E98243" stroke-opacity="0.45" />
+        <circle cx="-196" cy="17" r="4" fill="#E98243" fill-opacity="0.85" />
+        <text class="mono" x="-182" y="22" font-size="14" fill="#B5642C">S4 row 221 · conflict</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- mark -->
+  <g transform="translate(88 76) scale(2.1667)">
+    <g fill="none" stroke="#111111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4.7 2.7h8L19 9v12.3H4.7Z" />
+      <path d="M12.7 2.7v6.3H19" />
+      <path d="M7.5 15.3h1.6l1.6-3.7 1.9 5.9 1.2-2.2h1.1" />
+    </g>
+    <circle cx="19" cy="17.7" r="2.5" fill="#3F76C5" />
+  </g>
+
+  <text class="sans" x="88" y="352" font-size="86" font-weight="600" letter-spacing="-3.4" fill="#111111">CaseSignal</text>
+
+  <text class="sans" x="88" y="428" font-size="34" font-weight="400" letter-spacing="-0.7" fill="#676762">Evidence has a paper trail.</text>
+  <text class="sans" x="88" y="476" font-size="34" font-weight="500" letter-spacing="-0.7" fill="#111111">Find it faster.</text>
+
+  <path d="M88 542 H 1112" stroke="#DFDFD9" stroke-width="1" />
+  <text class="mono" x="88" y="574" font-size="15" letter-spacing="1.4" fill="#92928C">SOURCE-BACKED CASE FILES FROM THE RECORDS YOU ALREADY HAVE</text>
+</svg>

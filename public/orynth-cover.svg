@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675" role="img" aria-label="CaseSignal — turn public records into source-backed case files">
+  <title>CaseSignal — turn public records into source-backed case files</title>
+
+  <defs>
+    <style>
+      .sans { font-family: Geist, Inter, 'Helvetica Neue', system-ui, -apple-system, sans-serif; }
+      .mono { font-family: 'Geist Mono', 'SF Mono', ui-monospace, Menlo, monospace; }
+    </style>
+    <clipPath id="cover-sheet"><rect width="300" height="420" rx="8" /></clipPath>
+    <linearGradient id="cover-fade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0.7" stop-color="#FFFFFF" stop-opacity="0" />
+      <stop offset="1" stop-color="#F5F5F2" stop-opacity="1" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="675" fill="#F5F5F2" />
+
+  <!-- Faint archival coordinates, the same texture the product's shell uses. -->
+  <g stroke="#111111" stroke-opacity="0.035" stroke-width="1">
+    <path d="M776 0V675M920 0V675M1064 0V675" />
+    <path d="M776 96H1200M776 240H1200M776 384H1200M776 528H1200" />
+  </g>
+
+  <!--
+    One record, read: the sheet, the excerpts ruled inside it, and the citation
+    markers that resolve to those excerpts — one supporting, one in conflict.
+    The composition is built from the product's own vocabulary, not decoration.
+  -->
+  <g transform="translate(800 130) rotate(-4)">
+    <rect width="300" height="420" rx="8" fill="#FFFFFF" />
+    <rect x="0.5" y="0.5" width="299" height="419" rx="8" fill="none" stroke="#3F76C5" stroke-opacity="0.26" />
+    <g clip-path="url(#cover-sheet)">
+      <g fill="#3F76C5">
+        <rect x="36" y="44" width="136" height="9" rx="4.5" fill-opacity="0.34" />
+        <rect x="36" y="82" width="228" height="6" rx="3" fill-opacity="0.15" />
+        <rect x="36" y="102" width="200" height="6" rx="3" fill-opacity="0.15" />
+        <rect x="36" y="122" width="220" height="6" rx="3" fill-opacity="0.15" />
+      </g>
+      <rect x="28" y="150" width="244" height="26" rx="5" fill="#3F76C5" fill-opacity="0.14" />
+      <rect x="36" y="159" width="188" height="8" rx="4" fill="#3F76C5" fill-opacity="0.5" />
+      <g fill="#3F76C5">
+        <rect x="36" y="196" width="212" height="6" rx="3" fill-opacity="0.15" />
+        <rect x="36" y="216" width="160" height="6" rx="3" fill-opacity="0.15" />
+      </g>
+      <rect x="28" y="244" width="244" height="26" rx="5" fill="#E98243" fill-opacity="0.15" />
+      <rect x="36" y="253" width="150" height="8" rx="4" fill="#E98243" fill-opacity="0.72" />
+      <g fill="#3F76C5">
+        <rect x="36" y="290" width="224" height="6" rx="3" fill-opacity="0.15" />
+        <rect x="36" y="310" width="180" height="6" rx="3" fill-opacity="0.15" />
+        <rect x="36" y="330" width="206" height="6" rx="3" fill-opacity="0.15" />
+        <rect x="36" y="350" width="104" height="6" rx="3" fill-opacity="0.15" />
+      </g>
+      <rect width="300" height="420" fill="url(#cover-fade)" />
+    </g>
+  </g>
+
+  <g stroke-linecap="round">
+    <path d="M796 166 L 762 166" stroke="#3F76C5" stroke-opacity="0.34" stroke-width="1.5" stroke-dasharray="3 5" />
+    <circle cx="760" cy="166" r="4" fill="#3F76C5" fill-opacity="0.6" />
+    <g transform="translate(758 148)">
+      <rect x="-136" y="0" width="136" height="36" rx="18" fill="#FFFFFF" stroke="#3F76C5" stroke-opacity="0.3" />
+      <circle cx="-114" cy="18" r="4.5" fill="#3F76C5" fill-opacity="0.75" />
+      <text class="mono" x="-99" y="23" font-size="14" fill="#3F76C5" fill-opacity="0.9">S2 p. 14</text>
+    </g>
+
+    <path d="M802 232 L 762 232" stroke="#E98243" stroke-opacity="0.5" stroke-width="1.5" stroke-dasharray="3 5" />
+    <circle cx="760" cy="232" r="4" fill="#E98243" fill-opacity="0.8" />
+    <g transform="translate(758 214)">
+      <rect x="-224" y="0" width="224" height="36" rx="18" fill="#FFFFFF" stroke="#E98243" stroke-opacity="0.45" />
+      <circle cx="-202" cy="18" r="4.5" fill="#E98243" fill-opacity="0.85" />
+      <text class="mono" x="-187" y="23" font-size="14" fill="#B5642C">S4 row 221 · conflict</text>
+    </g>
+  </g>
+
+  <!-- lockup -->
+  <g transform="translate(80 66)">
+    <g transform="scale(1.5)">
+      <g fill="none" stroke="#111111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4.7 2.7h8L19 9v12.3H4.7Z" />
+        <path d="M12.7 2.7v6.3H19" />
+        <path d="M7.5 15.3h1.6l1.6-3.7 1.9 5.9 1.2-2.2h1.1" />
+      </g>
+      <circle cx="19" cy="17.7" r="2.5" fill="#3F76C5" />
+    </g>
+    <text class="sans" x="42" y="25" font-size="22" font-weight="600" letter-spacing="-0.6" fill="#111111">CaseSignal</text>
+  </g>
+
+  <text class="sans" x="80" y="352" font-size="52" font-weight="600" letter-spacing="-1.9" fill="#111111">Turn public records</text>
+  <text class="sans" x="80" y="412" font-size="52" font-weight="600" letter-spacing="-1.9" fill="#111111">into source-backed</text>
+  <text class="sans" x="80" y="472" font-size="52" font-weight="600" letter-spacing="-1.9" fill="#111111">case files.</text>
+
+  <text class="sans" x="80" y="524" font-size="21" letter-spacing="-0.3" fill="#676762">Evidence has a paper trail. Find it faster.</text>
+
+  <path d="M80 588 H 1120" stroke="#DFDFD9" stroke-width="1" />
+  <text class="mono" x="80" y="620" font-size="14" letter-spacing="1.3" fill="#92928C">EVERY CLAIM · EVERY DATE · EVERY DIFFERENCE — CITED TO THE PAGE</text>
+</svg>
